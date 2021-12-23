@@ -14,6 +14,8 @@ def main() -> None:
 
     source_code = load_file(file)
 
+    print(source_code)
+
 
 
 if __name__ == "__main__":

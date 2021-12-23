@@ -103,8 +103,15 @@ MAX_PRIORITY = token_priority_table[TokenType.PARENTHESIS]
 
 class Token:
 
-    def __init__(self, type: TokenType, base_priority: int, value: Any) -> None:
+    def __init__(self, type: TokenType, base_priority: int, value: Any = None) -> None:
         self.type = type
-        self.base_priority = base_priority + token_priority_table[type]
+        self.priority = base_priority + token_priority_table[type]
         self.value = value
+
+
+    def __str__(self) -> str:
+        return f'<{self.type}: {self.value} ({self.priority})>'
+
+    def __repr__(self) -> str:
+        return self.__str__()
 

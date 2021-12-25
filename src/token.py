@@ -1,6 +1,7 @@
 import enum
+from typing import Any, List, Tuple, Union
 
-from typing import Any, List, Tuple
+from utils import SourceCodeLocation
 
 
 @enum.unique
@@ -52,8 +53,8 @@ class TokenType(enum.IntEnum):
     # Other operators
     COMMA = enum.auto()
     PARENTHESIS = enum.auto()
-    INDEX = enum.auto()
-    SCOPE = enum.auto()
+    SQUARE_BRACKET = enum.auto()
+    CURLY_BRACKET = enum.auto()
     SEMICOLON = enum.auto()
 
     # Keywords
@@ -100,8 +101,8 @@ token_priority_table: Tuple[int] = \
 
     1,  # COMMA
     9,  # PARENTHESIS
-    9,  # INDEX
-    0,  # SCOPE
+    0,  # SQUARE_BRACKET
+    0,  # CURLY_BRACKET
     0,  # SEMICOLON
 
     0,  # IF
@@ -112,12 +113,70 @@ token_priority_table: Tuple[int] = \
 MAX_PRIORITY = token_priority_table[TokenType.PARENTHESIS]
 
 
+supported_operand_types_table: Tuple[Union[
+    Tuple[TokenType],
+    None
+]] = \
+(
+    None,  # NUMBER
+    None,  # STRING
+    None,  # BOOLEAN
+    None,  # ARRAY
+    None,  # NULL
+
+    None,  # IDENTIFIER
+
+    (TokenType.NUMBER, TokenType.STRING, TokenType.ARRAY),  # PLUS
+    (TokenType.NUMBER),  # MINUS
+    (TokenType.NUMBER),  # MULTIPLY
+    (TokenType.NUMBER),  # DIVIDE
+    (TokenType.NUMBER),  # MODULO
+    (TokenType.NUMBER),  # INCREMENT
+    (TokenType.NUMBER),  # DECREMENT
+
+    (TokenType.NUMBER, TokenType.STRING, TokenType.BOOLEAN, TokenType.ARRAY, TokenType.NULL),  # EQUAL
+    (TokenType.NUMBER, TokenType.STRING, TokenType.BOOLEAN, TokenType.ARRAY, TokenType.NULL),  # NOT_EQUAL
+    (TokenType.NUMBER),  # GREATER_THAN
+    (TokenType.NUMBER),  # LESS_THAN
+    (TokenType.NUMBER),  # GREATER_THAN_OR_EQUAL
+    (TokenType.NUMBER),  # LESS_THAN_OR_EQUAL
+
+    (TokenType.BOOLEAN),  # AND
+    (TokenType.BOOLEAN),  # OR
+    (TokenType.BOOLEAN),  # NOT
+
+    (TokenType.NUMBER, TokenType.STRING, TokenType.BOOLEAN, TokenType.ARRAY, TokenType.NULL),  # ASSIGNMENT
+    (TokenType.NUMBER, TokenType.STRING, TokenType.ARRAY),  # ASSIGNMENT_ADD
+    (TokenType.NUMBER),  # ASSIGNMENT_SUB
+    (TokenType.NUMBER),  # ASSIGNMENT_MUL
+    (TokenType.NUMBER),  # ASSIGNMENT_DIV
+    (TokenType.NUMBER),  # ASSIGNMENT_MOD
+
+    None,  # COMMA
+    None,  # PARENTHESIS
+    None,  # SQUARE_BRACKET
+    None,  # CURLY_BRACKET
+    None,  # SEMICOLON
+
+    None,  # IF
+    None,  # ELSE
+    None,  # WHILE
+
+)
+
+
+def get_supported_operand_types(token_type: TokenType) -> Tuple[TokenType]:
+    return supported_operand_types_table[token_type]
+
+
 class Token:
 
-    def __init__(self, type: TokenType, base_priority: int, value: Any = None) -> None:
+    def __init__(self, type: TokenType, base_priority: int, source_location: SourceCodeLocation, value: Any = None) -> None:
         self.type = type
         self.priority = base_priority + token_priority_table[type]
         self.value = value
+        self.source_location = source_location
+        self.children: Union[Tuple[Token], None] = None
 
 
     def __str__(self) -> str:

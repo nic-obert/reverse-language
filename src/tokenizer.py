@@ -2,6 +2,15 @@ from typing import Callable, Dict, List, Tuple, Union
 
 import errors
 from token import MAX_PRIORITY, Token, TokenType
+from keywords import get_keyword_type
+
+
+def is_identifier(char: str) -> bool:
+    return char.isalnum() or char == '_'
+
+
+def is_identifier_start(char: str) -> bool:
+    return char.isalpha() or char == '_'
 
 
 def tokenize_source_code(source_code: str) -> List[Token]:
@@ -107,7 +116,19 @@ def tokenize_source_code(source_code: str) -> List[Token]:
                         tokens.append(Token(TokenType.LESS_THAN_OR_EQUAL, base_priority))
                         token = None
                         continue
-
+                
+                case TokenType.IDENTIFIER:
+                    if is_identifier(character):
+                        token.value += character
+                        continue
+                    
+                    word_type = get_keyword_type(token.value)
+                    if word_type is not None:
+                        if word_type == TokenType.BOOLEAN:
+                            token.value = True if token.value == 'true' else False
+                        else:
+                            token = Token(word_type, base_priority)
+            
 
             tokens.append(token)
             token = None
@@ -117,6 +138,10 @@ def tokenize_source_code(source_code: str) -> List[Token]:
             token = Token(TokenType.NUMBER, base_priority, int(character))
             continue
 
+        if is_identifier_start(character):
+            token = Token(TokenType.IDENTIFIER, base_priority, character)
+            continue
+        
 
         match character:
 
@@ -187,12 +212,17 @@ def tokenize_source_code(source_code: str) -> List[Token]:
                 continue
             case '\r':
                 continue
+            case ';':
+                tokens.append(Token(TokenType.SEMICOLON, base_priority))
+                continue
         
-        errors.unexpected_character(character, line_number)
-
-
-        if token is not None:
-            tokens.append(token)
-
+        errors.unexpected_character(character, line_number, line_start, source_code)
+    
+    if token is not None:
+        tokens.append(token)
+    
+    if parenthesis_depth != 0:
+        errors.unbalanced_parenthesis(parenthesis_depth, line_number, line_start, source_code)
+    
     return tokens
 

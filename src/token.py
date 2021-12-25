@@ -53,7 +53,13 @@ class TokenType(enum.IntEnum):
     COMMA = enum.auto()
     PARENTHESIS = enum.auto()
     INDEX = enum.auto()
-    SCOPE = enum.auto() 
+    SCOPE = enum.auto()
+    SEMICOLON = enum.auto()
+
+    # Keywords
+    IF = enum.auto()
+    ELSE = enum.auto()
+    WHILE = enum.auto()
 
 
 token_priority_table: Tuple[int] = \
@@ -96,6 +102,11 @@ token_priority_table: Tuple[int] = \
     9,  # PARENTHESIS
     9,  # INDEX
     0,  # SCOPE
+    0,  # SEMICOLON
+
+    0,  # IF
+    0,  # ELSE
+    0,  # WHILE
 )
 
 MAX_PRIORITY = token_priority_table[TokenType.PARENTHESIS]
@@ -110,7 +121,7 @@ class Token:
 
 
     def __str__(self) -> str:
-        return f'<{self.type}: {self.value} ({self.priority})>'
+        return f'<{self.type.name}: {self.value} ({self.priority})>'
 
     def __repr__(self) -> str:
         return self.__str__()

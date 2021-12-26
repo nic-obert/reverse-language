@@ -1,6 +1,6 @@
 from typing import Dict, Union
 
-from token import TokenType
+from src.token import TokenType
 
 
 keyword_table: Dict[str, TokenType] = {

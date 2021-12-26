@@ -1,7 +1,7 @@
 import enum
 from typing import Any, List, Tuple, Union
 
-from utils import SourceCodeLocation
+from src.utils import SourceCodeLocation
 
 
 @enum.unique
@@ -62,6 +62,9 @@ class TokenType(enum.IntEnum):
     ELSE = enum.auto()
     WHILE = enum.auto()
 
+    # Utils
+    LITERAL = enum.auto()
+
 
 token_priority_table: Tuple[int] = \
 (
@@ -99,7 +102,7 @@ token_priority_table: Tuple[int] = \
     1,  # ASSIGNMENT_DIV
     1,  # ASSIGNMENT_MOD
 
-    1,  # COMMA
+    0,  # COMMA
     9,  # PARENTHESIS
     0,  # SQUARE_BRACKET
     0,  # CURLY_BRACKET
@@ -111,6 +114,58 @@ token_priority_table: Tuple[int] = \
 )
 
 MAX_PRIORITY = token_priority_table[TokenType.PARENTHESIS]
+
+
+expression_result_types_table: Tuple[Tuple[TokenType]] = \
+(
+    (TokenType.NUMBER,),        # NUMBER
+    (TokenType.STRING,),        # STRING
+    (TokenType.BOOLEAN,),       # BOOLEAN
+    (TokenType.ARRAY,),         # ARRAY
+    (TokenType.NULL,),          # NULL
+
+    (TokenType.LITERAL,),       # IDENTIFIER
+
+    (TokenType.NUMBER, TokenType.STRING, TokenType.ARRAY),   # PLUS
+    (TokenType.NUMBER,),        # MINUS
+    (TokenType.NUMBER,),        # MULTIPLY
+    (TokenType.NUMBER,),        # DIVIDE
+    (TokenType.NUMBER,),        # MODULO
+    (TokenType.IDENTIFIER,),    # INCREMENT
+    (TokenType.IDENTIFIER,),    # DECREMENT
+
+    (TokenType.BOOLEAN,),       # EQUAL
+    (TokenType.BOOLEAN,),       # NOT_EQUAL
+    (TokenType.BOOLEAN,),       # GREATER_THAN
+    (TokenType.BOOLEAN,),       # LESS_THAN
+    (TokenType.BOOLEAN,),       # GREATER_THAN_OR_EQUAL
+    (TokenType.BOOLEAN,),       # LESS_THAN_OR_EQUAL
+
+    (TokenType.BOOLEAN,),       # AND
+    (TokenType.BOOLEAN,),       # OR
+    (TokenType.BOOLEAN,),       # NOT
+
+    (TokenType.IDENTIFIER,),    # ASSIGNMENT
+    (TokenType.IDENTIFIER,),    # ASSIGNMENT_ADD
+    (TokenType.IDENTIFIER,),    # ASSIGNMENT_SUB
+    (TokenType.IDENTIFIER,),    # ASSIGNMENT_MUL
+    (TokenType.IDENTIFIER,),    # ASSIGNMENT_DIV
+    (TokenType.IDENTIFIER,),    # ASSIGNMENT_MOD
+
+    (),   # COMMA
+    (),   # PARENTHESIS
+    (),   # SQUARE_BRACKET
+    (),   # CURLY_BRACKET
+    (),   # SEMICOLON
+
+    (),   # IF
+    (),   # ELSE
+    (),   # WHILE
+
+)
+
+def get_expression_result_types(token_type: TokenType) -> Union[Tuple[TokenType], None]:
+    return expression_result_types_table[token_type]
 
 
 supported_operand_types_table: Tuple[Union[
@@ -145,12 +200,12 @@ supported_operand_types_table: Tuple[Union[
     (TokenType.BOOLEAN),  # OR
     (TokenType.BOOLEAN),  # NOT
 
-    (TokenType.NUMBER, TokenType.STRING, TokenType.BOOLEAN, TokenType.ARRAY, TokenType.NULL),  # ASSIGNMENT
-    (TokenType.NUMBER, TokenType.STRING, TokenType.ARRAY),  # ASSIGNMENT_ADD
-    (TokenType.NUMBER),  # ASSIGNMENT_SUB
-    (TokenType.NUMBER),  # ASSIGNMENT_MUL
-    (TokenType.NUMBER),  # ASSIGNMENT_DIV
-    (TokenType.NUMBER),  # ASSIGNMENT_MOD
+    (TokenType.NUMBER, TokenType.STRING, TokenType.BOOLEAN, TokenType.ARRAY, TokenType.NULL, TokenType.IDENTIFIER),  # ASSIGNMENT
+    (TokenType.NUMBER, TokenType.STRING, TokenType.ARRAY, TokenType.IDENTIFIER),  # ASSIGNMENT_ADD
+    (TokenType.NUMBER, TokenType.IDENTIFIER),  # ASSIGNMENT_SUB
+    (TokenType.NUMBER, TokenType.IDENTIFIER),  # ASSIGNMENT_MUL
+    (TokenType.NUMBER, TokenType.IDENTIFIER),  # ASSIGNMENT_DIV
+    (TokenType.NUMBER, TokenType.IDENTIFIER),  # ASSIGNMENT_MOD
 
     None,  # COMMA
     None,  # PARENTHESIS
@@ -176,7 +231,7 @@ class Token:
         self.priority = base_priority + token_priority_table[type]
         self.value = value
         self.source_location = source_location
-        self.children: Union[Tuple[Token], None] = None
+        self.children: Union[Tuple[Token], List[Token]] = ()
 
 
     def __str__(self) -> str:

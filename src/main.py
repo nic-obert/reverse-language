@@ -1,8 +1,9 @@
 import pathlib
 from sys import argv
 
-from utils import load_file
-from tokenizer import tokenize_source_code
+from src.utils import load_file
+from src.tokenizer import tokenize_source_code
+from src.syntax_tree import SyntaxTree
 
 
 def main() -> None:
@@ -17,6 +18,11 @@ def main() -> None:
     tokens = tokenize_source_code(source_code)
 
     print(tokens)
+
+    syntax_tree = SyntaxTree()
+    syntax_tree.parse_tokens(tokens, source_code)
+
+    print(syntax_tree)
 
 
 if __name__ == "__main__":

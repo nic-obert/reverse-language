@@ -1,9 +1,9 @@
 from typing import List, Union
 
-import errors
-from utils import SourceCodeLocation
-from token import MAX_PRIORITY, Token, TokenType
-from keywords import get_keyword_type
+import src.errors as errors
+from src.utils import SourceCodeLocation
+from src.token import MAX_PRIORITY, Token, TokenType
+from src.keywords import get_keyword_type
 
 
 def is_identifier(char: str) -> bool:
@@ -223,7 +223,7 @@ def tokenize_source_code(source_code: str) -> List[Token]:
         tokens.append(token)
     
     if parenthesis_depth != 0:
-        errors.unbalanced_parenthesis(parenthesis_depth, source_location, source_code)
+        errors.unbalanced_parentheses(parenthesis_depth, source_location, source_code)
     
     return tokens
 

@@ -40,8 +40,15 @@ class Scope:
         try:
             return self.symbols[identifier.value]
         except KeyError:
-            errors.undefined_identifier(identifier.value, identifier.source_location, identifier.source_code)
+            errors.undefined_identifier(identifier.value, identifier.source_location)
              
+
+    def set_symbol_value(self, name: str, value: Any) -> None:
+        """
+            Set the value of the symbol in the current scope.
+        """
+        self.symbols[name].value = value
+        
 
 class ScopeStack:
 
@@ -57,7 +64,7 @@ class ScopeStack:
         try:
             return self.stack[-1].get_symbol(identifier)
         except IndexError:
-            errors.undefined_identifier(identifier.value, identifier.source_location, identifier.source_code)
+            errors.undefined_identifier(identifier.value, identifier.source_location)
 
 
     def set_symbol(self, name: str, value: Token) -> None:
@@ -65,6 +72,13 @@ class ScopeStack:
             Set the Symbol in the current scope.
         """
         self.stack[-1].set_symbol(name, value)
+    
+
+    def set_symbol_value(self, name: str, value: Any) -> None:
+        """
+            Set the value of the symbol in the current scope.
+        """
+        self.stack[-1].set_symbol_value(name, value)
 
 
     def push_scope(self) -> None:
@@ -100,6 +114,13 @@ class SymbolTable:
             Set the Symbol in the current scope.
         """
         self.scope_stack.set_symbol(name, value)
+    
+
+    def set_symbol_value(self, name: str, value: Any) -> None:
+        """
+            Set the value of the symbol in the current scope.
+        """
+        self.scope_stack.set_symbol_value(name, value)
 
 
     def push_scope(self) -> None:
@@ -114,4 +135,4 @@ class SymbolTable:
             Pop the current scope off the stack.
         """
         self.scope_stack.pop_scope()
-
+    

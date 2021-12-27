@@ -182,30 +182,30 @@ supported_operand_types_table: Tuple[Union[
     None,  # IDENTIFIER
 
     (TokenType.NUMBER, TokenType.STRING, TokenType.ARRAY),  # PLUS
-    (TokenType.NUMBER),  # MINUS
-    (TokenType.NUMBER),  # MULTIPLY
-    (TokenType.NUMBER),  # DIVIDE
-    (TokenType.NUMBER),  # MODULO
-    (TokenType.NUMBER),  # INCREMENT
-    (TokenType.NUMBER),  # DECREMENT
+    (TokenType.NUMBER,),  # MINUS
+    (TokenType.NUMBER,),  # MULTIPLY
+    (TokenType.NUMBER,),  # DIVIDE
+    (TokenType.NUMBER,),  # MODULO
+    (TokenType.NUMBER,),  # INCREMENT
+    (TokenType.NUMBER,),  # DECREMENT
 
     (TokenType.NUMBER, TokenType.STRING, TokenType.BOOLEAN, TokenType.ARRAY, TokenType.NULL),  # EQUAL
     (TokenType.NUMBER, TokenType.STRING, TokenType.BOOLEAN, TokenType.ARRAY, TokenType.NULL),  # NOT_EQUAL
-    (TokenType.NUMBER),  # GREATER_THAN
-    (TokenType.NUMBER),  # LESS_THAN
-    (TokenType.NUMBER),  # GREATER_THAN_OR_EQUAL
-    (TokenType.NUMBER),  # LESS_THAN_OR_EQUAL
+    (TokenType.NUMBER,),  # GREATER_THAN
+    (TokenType.NUMBER,),  # LESS_THAN
+    (TokenType.NUMBER,),  # GREATER_THAN_OR_EQUAL
+    (TokenType.NUMBER,),  # LESS_THAN_OR_EQUAL
 
-    (TokenType.BOOLEAN),  # AND
-    (TokenType.BOOLEAN),  # OR
-    (TokenType.BOOLEAN),  # NOT
+    (TokenType.BOOLEAN,),  # AND
+    (TokenType.BOOLEAN,),  # OR
+    (TokenType.BOOLEAN,),  # NOT
 
-    (TokenType.NUMBER, TokenType.STRING, TokenType.BOOLEAN, TokenType.ARRAY, TokenType.NULL, TokenType.IDENTIFIER),  # ASSIGNMENT
-    (TokenType.NUMBER, TokenType.STRING, TokenType.ARRAY, TokenType.IDENTIFIER),  # ASSIGNMENT_ADD
-    (TokenType.NUMBER, TokenType.IDENTIFIER),  # ASSIGNMENT_SUB
-    (TokenType.NUMBER, TokenType.IDENTIFIER),  # ASSIGNMENT_MUL
-    (TokenType.NUMBER, TokenType.IDENTIFIER),  # ASSIGNMENT_DIV
-    (TokenType.NUMBER, TokenType.IDENTIFIER),  # ASSIGNMENT_MOD
+    (TokenType.NUMBER, TokenType.STRING, TokenType.BOOLEAN, TokenType.ARRAY, TokenType.NULL),  # ASSIGNMENT
+    (TokenType.NUMBER, TokenType.STRING, TokenType.ARRAY),  # ASSIGNMENT_ADD
+    (TokenType.NUMBER,),  # ASSIGNMENT_SUB
+    (TokenType.NUMBER,),  # ASSIGNMENT_MUL
+    (TokenType.NUMBER,),  # ASSIGNMENT_DIV
+    (TokenType.NUMBER,),  # ASSIGNMENT_MOD
 
     None,  # COMMA
     None,  # PARENTHESIS

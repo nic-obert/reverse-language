@@ -32,7 +32,6 @@ class SyntaxTree:
     def __init__(self) -> None:
         self.statements: List[Token] = []
         self.tokens: Union[List[Token], None] = None
-        self.source_code: Union[str, None] = None
 
     
     def extract_binary_operands(self, index: int) -> Tuple[Token, Token]:
@@ -54,15 +53,13 @@ class SyntaxTree:
     def check_operand_types(self, operator: Token, operands: Tuple[Token], supported_types: Tuple[TokenType]) -> None:
         for operand in operands:
             if operand.type != TokenType.IDENTIFIER and operand.type not in supported_types:
-                errors.type_error(supported_types, operand.type, operator.type, operator.source_location, self.source_code)
+                errors.type_error(supported_types, operand.type, operator.type, operator.source_location)
 
 
-    def parse_tokens(self, _tokens: List[Token], _source_code: str) -> None:
+    def parse_tokens(self, _tokens: List[Token]) -> None:
 
         self.tokens = _tokens
-        self.source_code = _source_code
 
-        del _source_code
         del _tokens
 
         while len(self.tokens) > 0:
@@ -131,7 +128,7 @@ class SyntaxTree:
                 
                 case TokenType.PARENTHESIS:
                     if token.value == ')':
-                        errors.unbalanced_parentheses(token.source_location, self.source_code)
+                        errors.unbalanced_parentheses(token.source_location)
                     
                     children = []
 
@@ -150,7 +147,7 @@ class SyntaxTree:
                             depth += 1
 
                         elif tok.type == TokenType.SEMICOLON:
-                            errors.unbalanced_parentheses(tok.source_location, self.source_code)
+                            errors.unbalanced_parentheses(tok.source_location)
                         
                         elif tok.type != TokenType.COMMA:
                             children.append(tok)
@@ -164,7 +161,7 @@ class SyntaxTree:
 
                 case TokenType.SQUARE_BRACKET:
                     if token.value == ']':
-                        errors.unbalanced_square_brackets(token.source_location, self.source_code)
+                        errors.unbalanced_square_brackets(token.source_location)
 
                     children = []
 
@@ -183,7 +180,7 @@ class SyntaxTree:
                             depth += 1
 
                         elif tok.type == TokenType.SEMICOLON:
-                            errors.unbalanced_square_brackets(tok.source_location, self.source_code)
+                            errors.unbalanced_square_brackets(tok.source_location)
                         
                         elif tok.type != TokenType.COMMA:
                             children.append(tok)
@@ -198,7 +195,7 @@ class SyntaxTree:
                 
                 case TokenType.CURLY_BRACKET:
                     if token.value == '}':
-                        errors.unbalanced_curly_brackets(token.source_location, self.source_code)
+                        errors.unbalanced_curly_brackets(token.source_location)
 
                     children = []
 
@@ -234,11 +231,11 @@ class SyntaxTree:
                     self.check_operand_types(token, (body), (TokenType.CURLY_BRACKET,))
                     
                     if get_expression_result_types(condition) != (TokenType.BOOLEAN,):
-                        errors.type_error((TokenType.BOOLEAN,), get_expression_result_types(condition), token.type, token.source_location, self.source_code)
+                        errors.type_error((TokenType.BOOLEAN,), get_expression_result_types(condition), token.type, token.source_location)
 
                     # Parse the code inside the curly brackets
                     content_tree = SyntaxTree()
-                    content_tree.parse_tokens(body.children, self.source_code)
+                    content_tree.parse_tokens(body.children)
                     body.children = content_tree.statements
 
                     token.children = (body, condition)
@@ -250,7 +247,7 @@ class SyntaxTree:
                     
                     # Parse the code inside the curly brackets
                     content_tree = SyntaxTree()
-                    content_tree.parse_tokens(body.children, self.source_code)
+                    content_tree.parse_tokens(body.children)
                     body.children = content_tree.statements
 
                     token.children = (body,)

@@ -2,7 +2,7 @@ import enum
 from typing import List, Tuple, Union
 
 import src.errors as errors
-from src.token import Token, TokenType, get_supported_operand_types, get_expression_result_types
+from src.token import Token, TokenType, get_supported_operand_types, get_expression_result_types, is_literal_type
 
 
 @enum.unique
@@ -34,12 +34,12 @@ class SyntaxTree:
         self.tokens: Union[List[Token], None] = None
 
     
-    def extract_binary_operands(self, index: int) -> Tuple[Token, Token]:
+    def extract_binary_operands(self, index: int) -> List[Token]:
         operand1 = self.tokens[index - 2]
         operand2 = self.tokens[index - 1]
         # Remove the operands from the list
         self.tokens = self.tokens[:index - 2] + self.tokens[index:]
-        return operand1, operand2
+        return [operand1, operand2]
     
 
     def extract_unary_operand(self, index: int, side: Side) -> Token:
@@ -51,10 +51,30 @@ class SyntaxTree:
 
     
     def check_operand_types(self, operator: Token, operands: Tuple[Token], supported_types: Tuple[TokenType]) -> None:
+        """
+        Check if the operands are of the correct type.
+        """
         for operand in operands:
-            if operand.type != TokenType.IDENTIFIER and operand.type not in supported_types:
-                errors.type_error(supported_types, operand.type, operator.type, operator.source_location)
+            # Cannot check the type of an identifier since it is not yet defined.
+            if operand.type == TokenType.IDENTIFIER:
+                continue
 
+            # Differentiate between plain literals and expression results
+            if is_literal_type(operand.type):
+                if operand.type not in supported_types:
+                    errors.type_error(supported_types, type, operator.type, operator.source_location)
+            else:
+                operand_types = get_expression_result_types(operand.type)
+                # If the operand is an expression result, check if at least one
+                # of its possible result types is supported.
+                supported = False
+                for type in operand_types:
+                    if type in supported_types:
+                        supported = True
+                        break
+                if not supported:
+                    errors.type_error(supported_types, operand_types, operator.type, operator.source_location)
+                
 
     def parse_tokens(self, _tokens: List[Token]) -> None:
 
@@ -106,7 +126,7 @@ class SyntaxTree:
 
                     operand = self.extract_unary_operand(index, Side.LEFT)
                     self.check_operand_types(token, (operand,), (TokenType.IDENTIFIER,))
-                    token.children = (operand,)
+                    token.children = [operand]
 
 
                 case TokenType.ASSIGNMENT | \
@@ -123,7 +143,7 @@ class SyntaxTree:
                     self.check_operand_types(token, (value,), value_supported_types)
                     self.check_operand_types(token, (identifier,), (TokenType.IDENTIFIER,))
 
-                    token.children = (value, identifier)
+                    token.children = [value, identifier]
                 
                 
                 case TokenType.PARENTHESIS:
@@ -136,15 +156,19 @@ class SyntaxTree:
                     depth = 1
                     i = index + 1
                     while True:
-                        tok = self.tokens[index]
+                        try:
+                            tok = self.tokens[i]
+                        except IndexError:
+                            errors.unbalanced_parentheses(token.source_location)
 
-                        if tok.value == '(':
-                            depth -= 1
-                            if depth == 0:
-                                break
+                        if tok.type == TokenType.PARENTHESIS:
+                            if tok.value == ')':
+                                depth -= 1
+                                if depth == 0:
+                                    break
 
-                        elif tok.value == ')':
-                            depth += 1
+                            else:
+                                depth += 1
 
                         elif tok.type == TokenType.SEMICOLON:
                             errors.unbalanced_parentheses(tok.source_location)
@@ -156,7 +180,7 @@ class SyntaxTree:
                     
                     if len(children) > 0:
                         self.tokens = self.tokens[: index + 1] + self.tokens[i + 1 :]
-                    token.children = tuple(children)
+                    token.children = children
 
 
                 case TokenType.SQUARE_BRACKET:
@@ -169,15 +193,19 @@ class SyntaxTree:
                     depth = 1
                     i = index + 1
                     while True:
-                        tok = self.tokens[index]
+                        try:
+                            tok = self.tokens[i]
+                        except IndexError:
+                            errors.unbalanced_square_brackets(token.source_location)
 
-                        if tok.value == '[':
-                            depth -= 1
-                            if depth == 0:
-                                break
+                        if tok.type == TokenType.SQUARE_BRACKET:
+                            if tok.value == ']':
+                                depth -= 1
+                                if depth == 0:
+                                    break
 
-                        elif tok.value == ']':
-                            depth += 1
+                            else:
+                                depth += 1
 
                         elif tok.type == TokenType.SEMICOLON:
                             errors.unbalanced_square_brackets(tok.source_location)
@@ -189,8 +217,7 @@ class SyntaxTree:
 
                     if len(children) > 0:
                         self.tokens = self.tokens[: index + 1] + self.tokens[i + 1 :]
-                    # Convert the children to a tuple for performance
-                    token.children = tuple(children)
+                    token.children = children
 
                 
                 case TokenType.CURLY_BRACKET:
@@ -203,15 +230,19 @@ class SyntaxTree:
                     depth = 1
                     i = index + 1
                     while True:
-                        tok = self.tokens[index]
+                        try:
+                            tok = self.tokens[i]
+                        except IndexError:
+                            errors.unbalanced_curly_brackets(token.source_location)
 
-                        if tok.value == '{':
-                            depth -= 1
-                            if depth == 0:
-                                break
+                        if tok.type == TokenType.CURLY_BRACKET:
+                            if tok.value == '}':
+                                depth -= 1
+                                if depth == 0:
+                                    break
 
-                        elif tok.value == '}':
-                            depth += 1
+                            else:
+                                depth += 1
    
                         elif tok.type != TokenType.COMMA:
                             children.append(tok)
@@ -220,7 +251,6 @@ class SyntaxTree:
 
                     if len(children) > 0:
                         self.tokens = self.tokens[: index + 1] + self.tokens[i + 1 :]
-                    # Keep the children property a list, since it will have to be modified later
                     token.children = children
 
 
@@ -238,7 +268,7 @@ class SyntaxTree:
                     content_tree.parse_tokens(body.children)
                     body.children = content_tree.statements
 
-                    token.children = (body, condition)
+                    token.children = [body, condition]
 
 
                 case TokenType.ELSE:
@@ -250,7 +280,7 @@ class SyntaxTree:
                     content_tree.parse_tokens(body.children)
                     body.children = content_tree.statements
 
-                    token.children = (body,)
+                    token.children = [body]
 
 
     def stringify_token(self, token: Token, depth: int) -> str:

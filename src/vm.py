@@ -24,7 +24,7 @@ class Processor:
     def check_type(self, provided_type: TokenType, operator: Token) -> None:
         expected_types = get_supported_operand_types(operator.type)
         if provided_type not in expected_types:
-            errors.type_error(expected_types, provided_type, operator, operator.source_location)
+            errors.type_error(expected_types, provided_type, operator.type, operator.source_location)
 
     
     def interpret(self, syntax_tree: SyntaxTree) -> None:
@@ -33,7 +33,8 @@ class Processor:
         """
         statements = syntax_tree.statements
         for statement in statements:
-            self.interpret_statement(statement)
+            result = self.interpret_statement(statement)
+            print(result)
 
 
     def interpret_statement(self, root: Token) -> Token:
@@ -290,4 +291,4 @@ class Processor:
                 root.type = TokenType.NUMBER
         
         return root
-        
+

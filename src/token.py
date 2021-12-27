@@ -66,6 +66,18 @@ class TokenType(enum.IntEnum):
     LITERAL = enum.auto()
 
 
+def is_literal_type(token_type: TokenType) -> bool:
+    match token_type:
+        case TokenType.NUMBER | \
+            TokenType.STRING | \
+            TokenType.BOOLEAN | \
+            TokenType.ARRAY | \
+            TokenType.NULL:
+            return True
+            
+    return False
+
+
 token_priority_table: Tuple[int] = \
 (
     0,  # NUMBER
@@ -131,8 +143,8 @@ expression_result_types_table: Tuple[Tuple[TokenType]] = \
     (TokenType.NUMBER,),        # MULTIPLY
     (TokenType.NUMBER,),        # DIVIDE
     (TokenType.NUMBER,),        # MODULO
-    (TokenType.IDENTIFIER,),    # INCREMENT
-    (TokenType.IDENTIFIER,),    # DECREMENT
+    (TokenType.NUMBER,),        # INCREMENT
+    (TokenType.NUMBER,),        # DECREMENT
 
     (TokenType.BOOLEAN,),       # EQUAL
     (TokenType.BOOLEAN,),       # NOT_EQUAL
@@ -145,15 +157,15 @@ expression_result_types_table: Tuple[Tuple[TokenType]] = \
     (TokenType.BOOLEAN,),       # OR
     (TokenType.BOOLEAN,),       # NOT
 
-    (TokenType.IDENTIFIER,),    # ASSIGNMENT
-    (TokenType.IDENTIFIER,),    # ASSIGNMENT_ADD
-    (TokenType.IDENTIFIER,),    # ASSIGNMENT_SUB
-    (TokenType.IDENTIFIER,),    # ASSIGNMENT_MUL
-    (TokenType.IDENTIFIER,),    # ASSIGNMENT_DIV
-    (TokenType.IDENTIFIER,),    # ASSIGNMENT_MOD
+    (TokenType.NUMBER, TokenType.STRING, TokenType.BOOLEAN, TokenType.ARRAY, TokenType.NULL),    # ASSIGNMENT
+    (TokenType.NUMBER, TokenType.STRING, TokenType.ARRAY),    # ASSIGNMENT_ADD
+    (TokenType.NUMBER,),    # ASSIGNMENT_SUB
+    (TokenType.NUMBER,),    # ASSIGNMENT_MUL
+    (TokenType.NUMBER,),    # ASSIGNMENT_DIV
+    (TokenType.NUMBER,),    # ASSIGNMENT_MOD
 
     (),   # COMMA
-    (),   # PARENTHESIS
+    (TokenType.NUMBER, TokenType.STRING, TokenType.BOOLEAN, TokenType.ARRAY, TokenType.NULL),   # PARENTHESIS
     (),   # SQUARE_BRACKET
     (),   # CURLY_BRACKET
     (),   # SEMICOLON
@@ -231,7 +243,7 @@ class Token:
         self.priority = base_priority + token_priority_table[type]
         self.value = value
         self.source_location = source_location
-        self.children: Union[Tuple[Token], List[Token]] = ()
+        self.children: List[Token] = []
 
 
     def __str__(self) -> str:

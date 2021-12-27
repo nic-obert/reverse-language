@@ -38,3 +38,11 @@ def type_error(expected_types: Tuple[TokenType], actual_type: TokenType, operato
     line = source_code[source_location.line_start:].split('\n', maxsplit=1)[0]
     print(line)
     exit(1)
+
+
+def undefined_identifier(identifier: str, source_location: SourceCodeLocation, source_code: str) -> None:
+    print(f'Undefined identifier "{identifier}" at line {source_location.line_number}')
+    line = source_code[source_location.line_start:].split('\n', maxsplit=1)[0]
+    print(line)
+    exit(1)
+

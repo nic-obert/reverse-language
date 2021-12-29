@@ -17,6 +17,7 @@ def is_identifier_start(char: str) -> bool:
 def tokenize_source_code(source_code: str) -> List[Token]:
     base_priority = 0
     parenthesis_depth = 0
+    square_bracket_depth = 0
     token: Union[Token, None] = None
     tokens: List[Token] = []
     source_location = SourceCodeLocation(0, 1)
@@ -36,6 +37,10 @@ def tokenize_source_code(source_code: str) -> List[Token]:
                     if character != '"':
                         token.value += character
                         continue
+                    # character == '"'
+                    tokens.append(token)
+                    token = None
+                    continue
                 
                 case TokenType.PLUS:
                     if character == '+':
@@ -92,14 +97,14 @@ def tokenize_source_code(source_code: str) -> List[Token]:
                         tokens.append(Token(TokenType.AND, base_priority, source_location))
                         token = None
                         continue
-                    errors.unexpected_character(character, source_location, source_code)
+                    errors.unexpected_character(character, source_location)
 
                 case TokenType.OR:
                     if character == '|':
                         tokens.append(Token(TokenType.OR, base_priority, source_location))
                         token = None
                         continue
-                    errors.unexpected_character(character, source_location, source_code)
+                    errors.unexpected_character(character, source_location)
 
                 case TokenType.GREATER_THAN:
                     if character == '=':
@@ -141,7 +146,7 @@ def tokenize_source_code(source_code: str) -> List[Token]:
         match character:
 
             case '"':
-                token = Token(TokenType.STRING, base_priority, source_location)
+                token = Token(TokenType.STRING, base_priority, source_location, '')
                 continue
 
             case '+':
@@ -199,6 +204,17 @@ def tokenize_source_code(source_code: str) -> List[Token]:
             case '}':
                 token = Token(TokenType.CURLY_BRACKET, base_priority, source_location, '}')
                 continue
+        
+            case '[':
+                square_bracket_depth += 1
+                token = Token(TokenType.SQUARE_BRACKET, base_priority, source_location, '[')
+                base_priority += MAX_PRIORITY
+                continue
+            case ']':
+                square_bracket_depth -= 1
+                base_priority -= MAX_PRIORITY
+                token = Token(TokenType.SQUARE_BRACKET, base_priority, source_location, ']')
+                continue
 
             case ',':
                 tokens.append(Token(TokenType.COMMA, base_priority, source_location))
@@ -217,13 +233,13 @@ def tokenize_source_code(source_code: str) -> List[Token]:
                 tokens.append(Token(TokenType.SEMICOLON, base_priority, source_location))
                 continue
         
-        errors.unexpected_character(character, source_location, source_code)
+        errors.unexpected_character(character, source_location)
     
     if token is not None:
         tokens.append(token)
     
     if parenthesis_depth != 0:
-        errors.unbalanced_parentheses(parenthesis_depth, source_location, source_code)
+        errors.unbalanced_parentheses(parenthesis_depth, source_location)
     
     return tokens
 

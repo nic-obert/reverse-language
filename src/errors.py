@@ -60,3 +60,11 @@ def division_by_zero(source_location: SourceCodeLocation) -> None:
     print(line)
     exit(1)
 
+
+def expected_operand(operator: TokenType, expected_types: Tuple[TokenType], source_location: SourceCodeLocation) -> None:
+    expected_types_string = ', '.join(map(lambda t: t.name, expected_types))
+    print(f'Expected operand for operator {operator.name} at line {source_location.line_number} supports {expected_types_string}, but none was found')
+    line = State.source_code[source_location.line_start:].split('\n', maxsplit=1)[0]
+    print(line)
+    exit(1)
+

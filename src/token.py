@@ -64,6 +64,7 @@ class TokenType(enum.IntEnum):
 
     # Utils
     LITERAL = enum.auto()
+    ARRAY_INDEXING = enum.auto()
 
 
 def is_literal_type(token_type: TokenType) -> bool:
@@ -116,7 +117,7 @@ token_priority_table: Tuple[int] = \
 
     0,  # COMMA
     9,  # PARENTHESIS
-    0,  # SQUARE_BRACKET
+    9,  # SQUARE_BRACKET
     0,  # CURLY_BRACKET
     0,  # SEMICOLON
 
@@ -173,6 +174,9 @@ expression_result_types_table: Tuple[Tuple[TokenType]] = \
     (),   # IF
     (),   # ELSE
     (),   # WHILE
+
+    (TokenType.NUMBER, TokenType.STRING, TokenType.BOOLEAN, TokenType.ARRAY, TokenType.NULL),    # LITERAL
+    (TokenType.NUMBER, TokenType.STRING, TokenType.BOOLEAN, TokenType.ARRAY, TokenType.NULL),    # ARRAY_INDEXING
 
 )
 
@@ -240,7 +244,10 @@ class Token:
 
     def __init__(self, type: TokenType, base_priority: int, source_location: SourceCodeLocation, value: Any = None) -> None:
         self.type = type
-        self.priority = base_priority + token_priority_table[type]
+        
+        type_priority = token_priority_table[type]
+        self.priority = 0 if type_priority == 0 else base_priority + type_priority
+        
         self.value = value
         self.source_location = source_location
         self.children: List[Token] = []

@@ -34,20 +34,34 @@ class SyntaxTree:
         self.tokens: Union[List[Token], None] = None
 
     
-    def extract_binary_operands(self, index: int) -> List[Token]:
-        operand1 = self.tokens[index - 2]
-        operand2 = self.tokens[index - 1]
-        # Remove the operands from the list
-        self.tokens = self.tokens[:index - 2] + self.tokens[index:]
+    def extract_binary_operands(self, index: int) -> List[Union[Token, None]]:
+        try:
+            operand1 = self.tokens[index - 2]
+        except IndexError:
+            operand1 = None
+
+        try:
+            operand2 = self.tokens[index - 1]
+            # Remove the operands from the list only if there was no error.
+            # In case of errors, the program will terminate.
+            self.tokens = self.tokens[:index - 2] + self.tokens[index:]
+        except IndexError:
+            operand2 = None
+        
         return [operand1, operand2]
     
 
-    def extract_unary_operand(self, index: int, side: Side) -> Token:
-        if side == Side.LEFT:
-            operand = self.tokens.pop(index - 1)
-        else:
-            operand = self.tokens.pop(index + 1)
-        return operand
+    def extract_unary_operand(self, index: int, side: Side) -> Union[Token, None]:
+        try:
+            if side == Side.LEFT:
+                return self.tokens.pop(index - 1)
+
+            # if side == Side.RIGHT:
+            return self.tokens.pop(index + 1)
+        
+        # If there is no operand, return None
+        except IndexError:
+            return None
 
     
     def check_operand_types(self, operator: Token, operands: Tuple[Token], supported_types: Tuple[TokenType]) -> None:
@@ -55,6 +69,10 @@ class SyntaxTree:
         Check if the operands are of the correct type.
         """
         for operand in operands:
+
+            if operand is None:
+                errors.expected_operand(operator.type, supported_types, operator.source_location)
+
             # Cannot check the type of an identifier since it is not yet defined.
             if operand.type == TokenType.IDENTIFIER:
                 continue
@@ -62,7 +80,7 @@ class SyntaxTree:
             # Differentiate between plain literals and expression results
             if is_literal_type(operand.type):
                 if operand.type not in supported_types:
-                    errors.type_error(supported_types, type, operator.type, operator.source_location)
+                    errors.type_error(supported_types, operand.type, operator.type, operator.source_location)
             else:
                 operand_types = get_expression_result_types(operand.type)
                 # If the operand is an expression result, check if at least one
@@ -112,8 +130,9 @@ class SyntaxTree:
                     TokenType.AND | \
                     TokenType.OR:
 
-                    operands = self.extract_binary_operands(index)
                     supported_types = get_supported_operand_types(token.type)
+
+                    operands = self.extract_binary_operands(index)
                     
                     # Check if the operand types are supported by the operator
                     self.check_operand_types(token, operands, supported_types)
@@ -125,6 +144,7 @@ class SyntaxTree:
                     TokenType.DECREMENT:
 
                     operand = self.extract_unary_operand(index, Side.LEFT)
+                  
                     self.check_operand_types(token, (operand,), (TokenType.IDENTIFIER,))
                     token.children = [operand]
 
@@ -178,8 +198,7 @@ class SyntaxTree:
                         
                         i += 1
                     
-                    if len(children) > 0:
-                        self.tokens = self.tokens[: index + 1] + self.tokens[i + 1 :]
+                    self.tokens = self.tokens[: index + 1] + self.tokens[i + 1 :]
                     token.children = children
 
 
@@ -187,7 +206,39 @@ class SyntaxTree:
                     if token.value == ']':
                         errors.unbalanced_square_brackets(token.source_location)
 
-                    children = []
+                    # Differentiate between array literal and array indexing
+                    try:
+                        next_token = self.tokens[index + 1]
+                    except IndexError:
+                        errors.unbalanced_square_brackets(token.source_location)
+                    
+                    # Check if brackets are empty
+                    if next_token.type == TokenType.SQUARE_BRACKET and next_token.value == ']':
+                        # Check if previous token is a number (the array index to be accessed)
+                        try:
+                            # Check if the previous token exists
+                            prev_token_index = index - 1
+                            if prev_token_index > 0:
+                                prev_token = self.tokens[prev_token_index]
+                                if prev_token.type in (TokenType.NUMBER, TokenType.IDENTIFIER, TokenType.PARENTHESIS):
+                                    # Check if the token before the previous token is an identifier
+                                    try:
+                                        # index - 2 is always >= 0, since index - 1 is always > 0
+                                        prev_prev_token = self.tokens[index - 2]
+                                        if prev_prev_token.type in (TokenType.IDENTIFIER, TokenType.ARRAY, TokenType.PARENTHESIS):
+                                            # The [] is an array indexing operator
+                                            token.type = TokenType.ARRAY_INDEXING
+                                            token.children = [prev_prev_token, prev_token]
+                                            self.tokens = self.tokens[: index - 2] + [token] + self.tokens[index + 2 :]
+                                            continue
+                                    
+                                    except IndexError:
+                                        pass   
+                        except IndexError:
+                            pass
+
+                    # The token is a literal array
+                    token.type = TokenType.ARRAY
 
                     # Find the matching bracket in the statement and extract the children
                     depth = 1
@@ -211,13 +262,13 @@ class SyntaxTree:
                             errors.unbalanced_square_brackets(tok.source_location)
                         
                         elif tok.type != TokenType.COMMA:
-                            children.append(tok)
+                            token.children.append(tok)
                         
                         i += 1
 
-                    if len(children) > 0:
-                        self.tokens = self.tokens[: index + 1] + self.tokens[i + 1 :]
-                    token.children = children
+                    # Lastly, remove the brackets with their contents
+                    self.tokens = self.tokens[: index + 1] + self.tokens[i + 1 :]
+                    token.value = token.children
 
                 
                 case TokenType.CURLY_BRACKET:
@@ -249,8 +300,7 @@ class SyntaxTree:
                         
                         i += 1
 
-                    if len(children) > 0:
-                        self.tokens = self.tokens[: index + 1] + self.tokens[i + 1 :]
+                    self.tokens = self.tokens[: index + 1] + self.tokens[i + 1 :]
                     token.children = children
 
 

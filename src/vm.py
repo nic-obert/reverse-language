@@ -1,5 +1,6 @@
-from typing import Any, Tuple, Union
+from typing import Any, Tuple
 
+import src.operations as operations
 import src.errors as errors
 from src.symbols import SymbolTable
 from src.syntax_tree import SyntaxTree
@@ -18,14 +19,12 @@ class Processor:
         if token.type == TokenType.IDENTIFIER:
             symbol = self.symbol_table.get_symbol(token)
             return symbol.value, symbol.type
+        
+        elif token.type == TokenType.PARENTHESIS:
+            return self.get_value_and_type(token.children[0])
+        
         return token.value, token.type
     
-
-    def check_type(self, provided_type: TokenType, operator: Token) -> None:
-        expected_types = get_supported_operand_types(operator.type)
-        if provided_type not in expected_types:
-            errors.type_error(expected_types, provided_type, operator.type, operator.source_location)
-
     
     def interpret(self, syntax_tree: SyntaxTree) -> None:
         """
@@ -47,66 +46,40 @@ class Processor:
             case TokenType.PLUS:
                 value1, type1 = self.get_value_and_type(root.children[0])
                 value2, type2 = self.get_value_and_type(root.children[1])
-                
-                self.check_type(type1, root)
-                self.check_type(type2, root)
-
-                root.value = value1 + value2
+                root.value = operations.add(value1, type1, value2, type2, root)
                 root.type = type1
             
             case TokenType.MINUS:
                 value1, type1 = self.get_value_and_type(root.children[0])
                 value2, type2 = self.get_value_and_type(root.children[1])
-                
-                self.check_type(type1, root)
-                self.check_type(type2, root)
-
-                root.value = value1 - value2
+                root.value = operations.subtract(value1, type1, value2, type2, root)
                 root.type = TokenType.NUMBER
             
             case TokenType.MULTIPLY:
                 value1, type1 = self.get_value_and_type(root.children[0])
                 value2, type2 = self.get_value_and_type(root.children[1])
-                
-                self.check_type(type1, root)
-                self.check_type(type2, root)
-
-                root.value = value1 * value2
+                root.value = operations.multiply(value1, type1, value2, type2, root)
                 root.type = TokenType.NUMBER
             
             case TokenType.DIVIDE:
                 value1, type1 = self.get_value_and_type(root.children[0])
                 value2, type2 = self.get_value_and_type(root.children[1])
-                
-                self.check_type(type1, root)
-                self.check_type(type2, root)
-
-                if value2 == 0:
-                    errors.division_by_zero(root.source_location)
-
-                root.value = value1 / value2
+                root.value = operations.divide(value1, type1, value2, type2, root)
                 root.type = TokenType.NUMBER
             
             case TokenType.MODULO:
                 value1, type1 = self.get_value_and_type(root.children[0])
                 value2, type2 = self.get_value_and_type(root.children[1])
-
-                self.check_type(type1, root)
-                self.check_type(type2, root)
-
-                if value2 == 0:
-                    errors.division_by_zero(root.source_location)
-                
-                root.value = value1 % value2
+                root.value = operations.modulo(value1, type1, value2, type2, root)
                 root.type = TokenType.NUMBER
 
             case TokenType.INCREMENT:
                 identifier = root.children[0]
                 symbol = self.symbol_table.get_symbol(root.children[0])
                 
-                self.check_type(symbol.type, root)
-
-                self.symbol_table.set_symbol_value(identifier.value, symbol.value + 1)
+                new_value = operations.increment(symbol.value, symbol.type, root)
+                
+                self.symbol_table.set_symbol_value(identifier.value, new_value)
                 root.value = symbol.value
                 root.type = TokenType.NUMBER
             
@@ -114,98 +87,63 @@ class Processor:
                 identifier = root.children[0]
                 symbol = self.symbol_table.get_symbol(root.children[0])
 
-                self.check_type(symbol.type, root)
+                new_value = operations.decrement(symbol.value, symbol.type, root)
 
-                self.symbol_table.set_symbol_value(identifier.value, symbol.value - 1)
+                self.symbol_table.set_symbol_value(identifier.value, new_value)
                 root.value = symbol.value
                 root.type = TokenType.NUMBER
 
             case TokenType.EQUAL:
                 value1, type1 = self.get_value_and_type(root.children[0])
                 value2, type2 = self.get_value_and_type(root.children[1])
-
-                self.check_type(type1, root)
-                self.check_type(type2, root)
-
-                root.value = value1 == value2
+                root.value = operations.equal(value1, type1, value2, type2, root)
                 root.type = TokenType.BOOLEAN
             
             case TokenType.NOT_EQUAL:
                 value1, type1 = self.get_value_and_type(root.children[0])
                 value2, type2 = self.get_value_and_type(root.children[1])
-
-                self.check_type(type1, root)
-                self.check_type(type2, root)
-
-                root.value = value1 != value2
+                root.value = operations.not_equal(value1, type1, value2, type2, root)
                 root.type = TokenType.BOOLEAN
 
             case TokenType.GREATER_THAN:
                 value1, type1 = self.get_value_and_type(root.children[0])
                 value2, type2 = self.get_value_and_type(root.children[1])
-
-                self.check_type(type1, root)
-                self.check_type(type2, root)
-
-                root.value = value1 > value2
+                root.value = operations.greater_than(value1, type1, value2, type2, root)
                 root.type = TokenType.BOOLEAN
 
             case TokenType.LESS_THAN:
                 value1, type1 = self.get_value_and_type(root.children[0])
                 value2, type2 = self.get_value_and_type(root.children[1])
-
-                self.check_type(type1, root)
-                self.check_type(type2, root)
-
-                root.value = value1 < value2
+                root.value = operations.less_than(value1, type1, value2, type2, root)
                 root.type = TokenType.BOOLEAN
 
             case TokenType.GREATER_THAN_OR_EQUAL:
                 value1, type1 = self.get_value_and_type(root.children[0])
                 value2, type2 = self.get_value_and_type(root.children[1])
-
-                self.check_type(type1, root)
-                self.check_type(type2, root)
-
-                root.value = value1 >= value2
+                root.value = operations.greater_than_or_equal(value1, type1, value2, type2, root)
                 root.type = TokenType.BOOLEAN
 
             case TokenType.LESS_THAN_OR_EQUAL:
                 value1, type1 = self.get_value_and_type(root.children[0])
                 value2, type2 = self.get_value_and_type(root.children[1])
-
-                self.check_type(type1, root)
-                self.check_type(type2, root)
-
-                root.value = value1 <= value2
+                root.value = operations.less_than_or_equal(value1, type1, value2, type2, root)
                 root.type = TokenType.BOOLEAN
 
             case TokenType.AND:
                 value1, type1 = self.get_value_and_type(root.children[0])
                 value2, type2 = self.get_value_and_type(root.children[1])
-
-                self.check_type(type1, root)
-                self.check_type(type2, root)
-
-                root.value = value1 and value2
+                root.value = operations.and_(value1, type1, value2, type2, root)
                 root.type = TokenType.BOOLEAN
 
             case TokenType.OR:
                 value1, type1 = self.get_value_and_type(root.children[0])
                 value2, type2 = self.get_value_and_type(root.children[1])
-
-                self.check_type(type1, root)
-                self.check_type(type2, root)
-
-                root.value = value1 or value2
+                root.value = operations.or_(value1, type1, value2, type2, root)
                 root.type = TokenType.BOOLEAN
 
             case TokenType.NOT:
                 value1, type1 = self.get_value_and_type(root.children[0])
-
-                self.check_type(type1, root)
-
-                root.value = not value1
+                root.value = operations.not_(value1, type1, root)
                 root.type = TokenType.BOOLEAN
 
             case TokenType.ASSIGNMENT:
@@ -220,75 +158,65 @@ class Processor:
                 root.type = type
 
             case TokenType.ASSIGNMENT_ADD:
-                value_token = root.children[0]
-                value, type = self.get_value_and_type(value_token)
-
-                self.check_type(type, root)
+                value, type = self.get_value_and_type(root.children[0])
 
                 identifier = root.children[1]
-
                 symbol = self.symbol_table.get_symbol(identifier)
-                self.symbol_table.set_symbol_value(identifier.value, symbol.value + value)
+
+                new_value = operations.add(symbol.value, symbol.type, value, type, root)
+
+                self.symbol_table.set_symbol_value(identifier.value, new_value)
                 root.value = symbol.value
                 root.type = type
 
             case TokenType.ASSIGNMENT_SUB:
-                value_token = root.children[0]
-                value, type = self.get_value_and_type(value_token)
-
-                self.check_type(type, root)
+                value, type = self.get_value_and_type(root.children[0])
 
                 identifier = root.children[1]
-
                 symbol = self.symbol_table.get_symbol(identifier)
-                self.symbol_table.set_symbol_value(identifier.value, symbol.value - value)
+
+                new_value = operations.subtract(symbol.value, symbol.type, value, type, root)
+
+                self.symbol_table.set_symbol_value(identifier.value, new_value)
                 root.value = symbol.value
-                root.type = TokenType.NUMBER
+                root.type = type
 
             case TokenType.ASSIGNMENT_MUL:
-                value_token = root.children[0]
-                value, type = self.get_value_and_type(value_token)
-
-                self.check_type(type, root)
+                value, type = self.get_value_and_type(root.children[0])
 
                 identifier = root.children[1]
-
                 symbol = self.symbol_table.get_symbol(identifier)
-                self.symbol_table.set_symbol_value(identifier.value, symbol.value * value)
+
+                new_value = operations.multiply(symbol.value, symbol.type, value, type, root)
+
+                self.symbol_table.set_symbol_value(identifier.value, new_value)
                 root.value = symbol.value
-                root.type = TokenType.NUMBER
+                root.type = type
 
             case TokenType.ASSIGNMENT_DIV:
-                value_token = root.children[0]
-                value, type = self.get_value_and_type(value_token)
-
-                self.check_type(type, root)
-
-                if value == 0:
-                    errors.division_by_zero(root.source_location)
+                value, type = self.get_value_and_type(root.children[0])
 
                 identifier = root.children[1]
-
                 symbol = self.symbol_table.get_symbol(identifier)
-                self.symbol_table.set_symbol_value(identifier.value, symbol.value / value)
+
+                new_value = operations.divide(symbol.value, symbol.type, value, type, root)
+
+                self.symbol_table.set_symbol_value(identifier.value, new_value)
                 root.value = symbol.value
-                root.type = TokenType.NUMBER
+                root.type = type
 
             case TokenType.ASSIGNMENT_MOD:
-                value_token = root.children[0]
-                value, type = self.get_value_and_type(value_token)
-
-                self.check_type(type, root)
-
-                if value == 0:
-                    errors.division_by_zero(root.source_location)
+                value, type = self.get_value_and_type(root.children[0])
 
                 identifier = root.children[1]
-
                 symbol = self.symbol_table.get_symbol(identifier)
-                self.symbol_table.set_symbol_value(identifier.value, symbol.value % value)
+
+                new_value = operations.mod(symbol.value, symbol.type, value, type, root)
+
+                self.symbol_table.set_symbol_value(identifier.value, new_value)
                 root.value = symbol.value
-                root.type = TokenType.NUMBER
-        
+                root.type = type
+
+                        
         return root
 

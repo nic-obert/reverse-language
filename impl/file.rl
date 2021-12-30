@@ -1,4 +1,6 @@
-;0 = i
+
 {
-    ; 1 += i
-} i 1 + 5 < while
+    ; a b +
+} (a, b) function
+
+;(1, 2)function

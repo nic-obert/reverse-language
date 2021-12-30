@@ -218,23 +218,22 @@ class SyntaxTree:
                     
                     # Check if the previous token is a curly bracket
                     curly_bracket_token_index = index - 1
-                    if curly_bracket_token_index < 0:
-                        continue
-                    curly_bracket_token = self.tokens[curly_bracket_token_index]
-                    if curly_bracket_token.type == TokenType.CURLY_BRACKET:
-                        # This is a function declaration: "{body} (args) name"
-                        token.type = TokenType.FUNCTION_DECLARATION
-                        # Update the token's children to include the function body, arguments and name
-                        # New format: [body, args, name]
-                        token.children = [curly_bracket_token, children, identifier_token]
-                        # Remove the curly bracket and idetifier from the list of tokens
-                        self.tokens = self.tokens[:curly_bracket_token_index] + self.tokens[identifier_token_index + 1:]
-                        continue
+                    if curly_bracket_token_index >= 0:
+                        curly_bracket_token = self.tokens[curly_bracket_token_index]
+                        if curly_bracket_token.type == TokenType.CURLY_BRACKET:
+                            # This is a function declaration: "{body} (args) name"
+                            token.type = TokenType.FUNCTION_DECLARATION
+                            # Update the token's value to include the function body, arguments and name
+                            # New format: [body, args, name]
+                            token.value = [curly_bracket_token, children, identifier_token]
+                            # Remove the curly bracket and idetifier from the list of tokens
+                            self.tokens = self.tokens[:curly_bracket_token_index] + [token] + self.tokens[identifier_token_index + 1:]
+                            continue
                 
                     # If the previous token is not a curly bracket, this is a function call
                     token.type = TokenType.FUNCTION_CALL
-                    # Update the children to include the function name
-                    token.children = [children, identifier_token]
+                    # Update the value to include the function name
+                    token.value = [children, identifier_token]
                     # Remove the identifier from the list of tokens
                     self.tokens.pop(identifier_token_index)
 
@@ -385,14 +384,16 @@ class SyntaxTree:
                     token.children = [body]
 
 
-    def stringify_token(self, token: Token, depth: int) -> str:
+    def stringify_token(self, token: Union[Token, List[Token]], depth: int) -> str:
         """
         Recursively convert a token into a pretty formetted string.
         """
         indent = f'{"  " * depth}-> '
         string = f'{indent}<{token.type.name}: {token.value}>\n'
+
         for child in token.children:
             string += f'{self.stringify_token(child, depth + 1)}'
+        
         return string
 
 

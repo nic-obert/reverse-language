@@ -42,7 +42,7 @@ class Processor:
 
     def interpret_statement(self, root: Token) -> Token:
         # Don't mind executing literals.
-        if is_literal_type(root.type):
+        if is_literal_type(root.type) or root.type == TokenType.IDENTIFIER:
             return root
 
         # Interpret the statement recursively.
@@ -280,36 +280,37 @@ class Processor:
             
 
             case TokenType.FUNCTION_DECLARATION:
-                body_token = root.children[0]
-                arguments_token_list = root.children[1]
-                identifier_token = root.children[2]
+                body_token: Token = root.value[0]
+                parameters_token_list: List[Token] = root.value[1]
+                identifier_token: Token = root.value[2]
 
                 # Create a new function token to store the newly declared function
                 # Function token format: [[arguments], [function_body_statements]]
                 # Data types:            [List[str],   List[Token]               ]    
-                function = Token(TokenType.FUNCTION, 0, None, None)
+                function = Token(TokenType.FUNCTION, 0, None)
 
-                argument_list: List[str] = [argument for argument in arguments_token_list.children]
+                parameter_list: List[str] = [parameter.value for parameter in parameters_token_list]
 
-                function.children = [argument_list, body_token.children]
+                function.value = [parameter_list, body_token.children]
 
                 self.symbol_table.set_symbol(identifier_token.value, function)
             
 
             case TokenType.FUNCTION_CALL:
-                arguments_token_list, identifier_token = root.children
+                arguments_token_list: List[Token] = root.value[0]
+                identifier_token: Token = root.value[1]
 
                 # Get the function from the symbol table
-                function = self.symbol_table.get_symbol(identifier_token.value)
+                function = self.symbol_table.get_symbol(identifier_token)
                 argument_list: List[str] = function.value[0]
                 statements: List[Token] = function.value[1]
 
                 # Check if the number of arguments matches the number of arguments in the function
-                if len(arguments_token_list.children) != len(argument_list):
+                if len(arguments_token_list) != len(argument_list):
                     errors.wrong_argument_count(
                         identifier_token.value,
                         len(argument_list),
-                        len(arguments_token_list.children),
+                        len(arguments_token_list),
                         root.source_location
                     )
                 
@@ -317,7 +318,7 @@ class Processor:
                 self.symbol_table.push_scope()
 
                 # Declare the arguments in the new scope
-                for identifier, argument in zip(argument_list, arguments_token_list.children):
+                for identifier, argument in zip(argument_list, arguments_token_list):
                     self.symbol_table.set_symbol(identifier, argument)
                 
                 # Execute the function body

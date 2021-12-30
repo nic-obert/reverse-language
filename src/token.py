@@ -127,6 +127,13 @@ token_priority_table: Tuple[int] = \
     1,  # IF
     2,  # ELSE
     1,  # WHILE
+
+    0,  # LITERAL
+    0,  # ARRAY_INDEXING
+    0,  # FUNCTION_CALL
+    0,  # FUNCTION_DECLARATION
+    0,  # FUNCTION
+    
 )
 
 MAX_PRIORITY = token_priority_table[TokenType.PARENTHESIS]

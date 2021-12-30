@@ -1,6 +1,2 @@
 
-{
-    ; a b +
-} (a, b) function
-
-;(1, 2)function
+;()getRandom 100 * = random

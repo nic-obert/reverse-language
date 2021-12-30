@@ -14,6 +14,21 @@ class Processor:
         self.symbol_table = SymbolTable()
         # Push the global scope.
         self.symbol_table.push_scope()
+    
+
+    def to_literals(self, tokens: List[Token]) -> List[Token]:
+        """
+            Convert a list of tokens into a list of literal tokens.
+        """
+        literals: List[Token] = []
+        for token in tokens:
+            if token.type == TokenType.IDENTIFIER:
+                value, type = self.get_value_and_type(token)
+                literals.append(Token(type, 0, token.source_location, value))
+            else:
+                literals.append(token)
+        
+        return literals
 
 
     def get_value_and_type(self, token: Token) -> Tuple[Any, TokenType]:
@@ -300,32 +315,43 @@ class Processor:
                 arguments_token_list: List[Token] = root.value[0]
                 identifier_token: Token = root.value[1]
 
-                # Get the function from the symbol table
-                function = self.symbol_table.get_symbol(identifier_token)
-                argument_list: List[str] = function.value[0]
-                statements: List[Token] = function.value[1]
+                # Check if the function has a built-in handler
+                builtin_handler = operations.get_builtin_handler(identifier_token.value)
+
+                if builtin_handler is not None:
+                    # Parameter list will just be used to check if the number of arguments is correct
+                    parameter_list = builtin_handler.supported_argument_types
+                else:
+                    # Get the function from the symbol table
+                    function = self.symbol_table.get_symbol(identifier_token)
+                    parameter_list: List[str] = function.value[0]
+                    statements: List[Token] = function.value[1]
 
                 # Check if the number of arguments matches the number of arguments in the function
-                if len(arguments_token_list) != len(argument_list):
+                if len(arguments_token_list) != len(parameter_list):
                     errors.wrong_argument_count(
                         identifier_token.value,
-                        len(argument_list),
+                        len(parameter_list),
                         len(arguments_token_list),
                         root.source_location
                     )
-                
-                # Push the new scope to the stack
-                self.symbol_table.push_scope()
 
-                # Declare the arguments in the new scope
-                for identifier, argument in zip(argument_list, arguments_token_list):
-                    self.symbol_table.set_symbol(identifier, argument)
-                
-                # Execute the function body
-                self.interpret_statements(statements)
+                if builtin_handler is not None:
+                    argument_literals = self.to_literals(arguments_token_list)
+                    root = builtin_handler.call(argument_literals, root)
+                else:
+                    # Push the new scope to the stack
+                    self.symbol_table.push_scope()
 
-                # Pop the scope from the stack
-                self.symbol_table.pop_scope()
+                    # Declare the arguments in the new scope
+                    for identifier, argument in zip(parameter_list, arguments_token_list):
+                        self.symbol_table.set_symbol(identifier, argument)
+                    
+                    # Execute the function body
+                    self.interpret_statements(statements)
+
+                    # Pop the scope from the stack
+                    self.symbol_table.pop_scope()
 
 
         return root

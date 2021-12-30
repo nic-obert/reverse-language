@@ -133,7 +133,7 @@ token_priority_table: Tuple[int] = \
     0,  # FUNCTION_CALL
     0,  # FUNCTION_DECLARATION
     0,  # FUNCTION
-    
+
 )
 
 MAX_PRIORITY = token_priority_table[TokenType.PARENTHESIS]
@@ -273,6 +273,22 @@ class Token:
 
 
     def __str__(self) -> str:
+        match self.type:
+
+            case TokenType.FUNCTION_DECLARATION:
+                # value = [body: Token, parameters: List[Token], name: Token]
+                name: str = self.value[2].value
+                parameter_tokens: List[Token] = self.value[1]
+                parameter_names = ', '.join([parameter_token.value for parameter_token in parameter_tokens])
+                return f'<{TokenType.FUNCTION_DECLARATION.name}: {name} ({parameter_names})>'
+
+            case TokenType.FUNCTION_CALL:
+                # value = [arguments: List[Token], name: Token]
+                name: str = self.value[1].value
+                argument_tokens: List[Token] = self.value[0]
+                argument_values = ', '.join([str(argument_token.value) for argument_token in argument_tokens])
+                return f'<{TokenType.FUNCTION_CALL.name}: {name} ({argument_values})>'
+
         return f'<{self.type.name}: {self.value} ({self.priority})>'
 
     def __repr__(self) -> str:

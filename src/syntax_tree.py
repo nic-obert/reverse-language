@@ -389,7 +389,7 @@ class SyntaxTree:
         Recursively convert a token into a pretty formetted string.
         """
         indent = f'{"  " * depth}-> '
-        string = f'{indent}<{token.type.name}: {token.value}>\n'
+        string = f'{indent}{str(token)}\n'
 
         for child in token.children:
             string += f'{self.stringify_token(child, depth + 1)}'

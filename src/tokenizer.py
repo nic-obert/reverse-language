@@ -120,7 +120,11 @@ def tokenize_source_code(source_code: str) -> List[Token]:
                 case TokenType.IDENTIFIER:
                     if is_identifier(character):
                         token.value += character
-                        continue
+
+                        if index != len(source_code) - 1:
+                            continue
+                        # This the end of the source code, ignore the character
+                        character = ''
                     
                     word_type = get_keyword_type(token.value)
                     if word_type is not None:
@@ -232,6 +236,8 @@ def tokenize_source_code(source_code: str) -> List[Token]:
                 continue
             case ';':
                 tokens.append(Token(TokenType.SEMICOLON, base_priority, source_location))
+                continue
+            case '':
                 continue
         
         errors.unexpected_character(character, source_location)

@@ -1,7 +1,4 @@
+;0 = i
 {
-    ; 10 = num
-
-} true false == if
-{
-    ; 5 = num
-} else
+    ; 1 += i
+} i 1 + 5 < while

@@ -1,6 +1,7 @@
 import copy
 from typing import Any, List, Tuple
 
+import src.errors as errors
 import src.operations as operations
 from src.symbols import SymbolTable
 from src.syntax_tree import SyntaxTree
@@ -276,6 +277,54 @@ class Processor:
 
             case TokenType.PARENTHESIS:
                 root = root.children[0]
+            
+
+            case TokenType.FUNCTION_DECLARATION:
+                body_token = root.children[0]
+                arguments_token_list = root.children[1]
+                identifier_token = root.children[2]
+
+                # Create a new function token to store the newly declared function
+                # Function token format: [[arguments], [function_body_statements]]
+                # Data types:            [List[str],   List[Token]               ]    
+                function = Token(TokenType.FUNCTION, 0, None, None)
+
+                argument_list: List[str] = [argument for argument in arguments_token_list.children]
+
+                function.children = [argument_list, body_token.children]
+
+                self.symbol_table.set_symbol(identifier_token.value, function)
+            
+
+            case TokenType.FUNCTION_CALL:
+                arguments_token_list, identifier_token = root.children
+
+                # Get the function from the symbol table
+                function = self.symbol_table.get_symbol(identifier_token.value)
+                argument_list: List[str] = function.value[0]
+                statements: List[Token] = function.value[1]
+
+                # Check if the number of arguments matches the number of arguments in the function
+                if len(arguments_token_list.children) != len(argument_list):
+                    errors.wrong_argument_count(
+                        identifier_token.value,
+                        len(argument_list),
+                        len(arguments_token_list.children),
+                        root.source_location
+                    )
+                
+                # Push the new scope to the stack
+                self.symbol_table.push_scope()
+
+                # Declare the arguments in the new scope
+                for identifier, argument in zip(argument_list, arguments_token_list.children):
+                    self.symbol_table.set_symbol(identifier, argument)
+                
+                # Execute the function body
+                self.interpret_statements(statements)
+
+                # Pop the scope from the stack
+                self.symbol_table.pop_scope()
 
 
         return root

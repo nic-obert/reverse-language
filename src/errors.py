@@ -75,3 +75,10 @@ def else_without_if(source_location: SourceCodeLocation) -> None:
     print(line)
     exit(1)
 
+
+def wrong_argument_count(function_name: str, expected_count: int, actual_count: int, source_location: SourceCodeLocation) -> None:
+    print(f'Wrong argument count for function {function_name} at line {source_location.line_number}: expected {expected_count}, got {actual_count}')
+    line = State.source_code[source_location.line_start:].split('\n', maxsplit=1)[0]
+    print(line)
+    exit(1)
+

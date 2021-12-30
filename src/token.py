@@ -65,6 +65,9 @@ class TokenType(enum.IntEnum):
     # Utils
     LITERAL = enum.auto()
     ARRAY_INDEXING = enum.auto()
+    FUNCTION_CALL = enum.auto()
+    FUNCTION_DECLARATION = enum.auto()
+    FUNCTION = enum.auto()
 
 
 def is_literal_type(token_type: TokenType) -> bool:
@@ -177,6 +180,9 @@ expression_result_types_table: Tuple[Tuple[TokenType]] = \
 
     (TokenType.NUMBER, TokenType.STRING, TokenType.BOOLEAN, TokenType.ARRAY, TokenType.NULL),    # LITERAL
     (TokenType.NUMBER, TokenType.STRING, TokenType.BOOLEAN, TokenType.ARRAY, TokenType.NULL),    # ARRAY_INDEXING
+    (TokenType.NUMBER, TokenType.STRING, TokenType.BOOLEAN, TokenType.ARRAY, TokenType.NULL),    # FUNCTION_CALL
+    (),   # FUNCTION_DECLARATION
+    (),   # FUNCTION
 
 )
 
@@ -232,6 +238,12 @@ supported_operand_types_table: Tuple[Union[
     None,  # IF
     None,  # ELSE
     None,  # WHILE
+
+    None,  # LITERAL
+    None,  # ARRAY_INDEXING
+    None,  # FUNCTION_CALL
+    None,  # FUNCTION_DECLARATION
+    None,  # FUNCTION
 
 )
 

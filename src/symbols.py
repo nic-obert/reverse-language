@@ -26,6 +26,9 @@ class Scope:
         """
         if value.type == TokenType.IDENTIFIER:
             symbol = self.get_symbol(value)
+        elif value.type == TokenType.CURLY_BRACKET:
+            # Token value is a function body, store its statements
+            symbol = Symbol(TokenType.FUNCTION, value.children)
         else:
             symbol = Symbol(value.type, value.value)
         

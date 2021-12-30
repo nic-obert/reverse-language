@@ -206,6 +206,38 @@ class SyntaxTree:
                     self.tokens = self.tokens[: index + 1] + self.tokens[i + 1 :]
                     token.children = children
 
+                    # Now, check what these parentheses are used for (function call, declaration, just a parenthesis)
+                    
+                    # Check if the next token is an identifier
+                    identifier_token_index = index + 1
+                    if identifier_token_index >= len(self.tokens):
+                        continue
+                    identifier_token = self.tokens[identifier_token_index]
+                    if identifier_token.type != TokenType.IDENTIFIER:
+                        continue
+                    
+                    # Check if the previous token is a curly bracket
+                    curly_bracket_token_index = index - 1
+                    if curly_bracket_token_index < 0:
+                        continue
+                    curly_bracket_token = self.tokens[curly_bracket_token_index]
+                    if curly_bracket_token.type == TokenType.CURLY_BRACKET:
+                        # This is a function declaration: "{body} (args) name"
+                        token.type = TokenType.FUNCTION_DECLARATION
+                        # Update the token's children to include the function body, arguments and name
+                        # New format: [body, args, name]
+                        token.children = [curly_bracket_token, children, identifier_token]
+                        # Remove the curly bracket and idetifier from the list of tokens
+                        self.tokens = self.tokens[:curly_bracket_token_index] + self.tokens[identifier_token_index + 1:]
+                        continue
+                
+                    # If the previous token is not a curly bracket, this is a function call
+                    token.type = TokenType.FUNCTION_CALL
+                    # Update the children to include the function name
+                    token.children = [children, identifier_token]
+                    # Remove the identifier from the list of tokens
+                    self.tokens.pop(identifier_token_index)
+
 
                 case TokenType.SQUARE_BRACKET:
                     if token.value == ']':

@@ -82,7 +82,7 @@ def tokenize_source_code(source_code: str) -> List[Token]:
 
                 case TokenType.ASSIGNMENT:
                     if character == '=':
-                        tokens.append(Token(TokenType.EQUALS, base_priority, source_location))
+                        tokens.append(Token(TokenType.EQUAL, base_priority, source_location))
                         token = None
                         continue
 
@@ -125,9 +125,10 @@ def tokenize_source_code(source_code: str) -> List[Token]:
                     word_type = get_keyword_type(token.value)
                     if word_type is not None:
                         if word_type == TokenType.BOOLEAN:
-                            token.value = True if token.value == 'true' else False
+                            value = True if token.value == 'true' else False
+                            token = Token(TokenType.BOOLEAN, base_priority, source_location, value)
                         else:
-                            token = Token(word_type, base_priority)
+                            token = Token(word_type, base_priority, source_location)
             
 
             tokens.append(token)

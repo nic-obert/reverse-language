@@ -68,3 +68,10 @@ def expected_operand(operator: TokenType, expected_types: Tuple[TokenType], sour
     print(line)
     exit(1)
 
+
+def else_without_if(source_location: SourceCodeLocation) -> None:
+    print(f'Else without if at line {source_location.line_number}')
+    line = State.source_code[source_location.line_start:].split('\n', maxsplit=1)[0]
+    print(line)
+    exit(1)
+

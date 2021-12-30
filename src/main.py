@@ -29,7 +29,7 @@ def main() -> None:
     print(syntax_tree, end='\n\n')
 
     processor = Processor()
-    processor.interpret(syntax_tree)
+    processor.interpret_tree(syntax_tree)
 
 
 if __name__ == "__main__":

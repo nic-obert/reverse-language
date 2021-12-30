@@ -35,32 +35,37 @@ class SyntaxTree:
 
     
     def extract_binary_operands(self, index: int) -> List[Union[Token, None]]:
-        try:
-            operand1 = self.tokens[index - 2]
-        except IndexError:
-            operand1 = None
-
-        try:
+        """
+        Extract the first and second operand from the left of a binary operator.
+        Returns a list of operands, where None is used to indicate that the
+        operand is not present (the error will be handled by check_operand_types()).
+        """
+        op1_index = index - 2
+        if op1_index >= 0:
+            operand1 = self.tokens[op1_index]
+            # If (index - 2) is valid, (index - 1) is also valid.
             operand2 = self.tokens[index - 1]
+
             # Remove the operands from the list only if there was no error.
-            # In case of errors, the program will terminate.
+            # In case of errors, the program will terminate anyways.
             self.tokens = self.tokens[:index - 2] + self.tokens[index:]
-        except IndexError:
-            operand2 = None
-        
-        return [operand1, operand2]
+            return [operand1, operand2]
+
+        else:
+            return [None, None]
     
 
     def extract_unary_operand(self, index: int, side: Side) -> Union[Token, None]:
-        try:
             if side == Side.LEFT:
-                return self.tokens.pop(index - 1)
+                operand_index = index - 1
+                if operand_index >= 0:
+                    return self.tokens.pop(operand_index)
+                return None
 
             # if side == Side.RIGHT:
-            return self.tokens.pop(index + 1)
-        
-        # If there is no operand, return None
-        except IndexError:
+            operand_index = index + 1
+            if operand_index < len(self.tokens):
+                return self.tokens.pop(operand_index)
             return None
 
     
@@ -275,7 +280,7 @@ class SyntaxTree:
                     if token.value == '}':
                         errors.unbalanced_curly_brackets(token.source_location)
 
-                    children = []
+                    children: List[Token] = []
 
                     # Find the matching bracket
                     depth = 1
@@ -294,42 +299,57 @@ class SyntaxTree:
 
                             else:
                                 depth += 1
-   
-                        elif tok.type != TokenType.COMMA:
-                            children.append(tok)
-                        
+                            
+                        children.append(tok)                        
                         i += 1
 
                     self.tokens = self.tokens[: index + 1] + self.tokens[i + 1 :]
-                    token.children = children
+
+                    # Parse the contents of the curly brackets into a tree structure
+                    content_tree = SyntaxTree()
+                    content_tree.parse_tokens(children)
+                    token.children = content_tree.statements
 
 
-                case TokenType.IF | \
-                    TokenType.WHILE:
+                case TokenType.IF:
+                    # Check for an else statement
+                    has_else_statement = False
+                    next_token_index = index + 1
+                    if next_token_index < len(self.tokens):
+                        else_token = self.tokens[next_token_index]
+                        if else_token.type == TokenType.ELSE:
+                            # The else statement is present and already parsed
+                            # Else statements have higher priority than if statements
+                            has_else_statement = True
+                            self.tokens.pop(next_token_index)
 
                     body, condition = self.extract_binary_operands(index)
-                    self.check_operand_types(token, (body), (TokenType.CURLY_BRACKET,))
+                    self.check_operand_types(token, (body,), (TokenType.CURLY_BRACKET,))
+                    self.check_operand_types(token, (condition,), (TokenType.BOOLEAN,))
+
+                    token.children = [body, condition]
+
+                    if has_else_statement:
+                        token.children.append(else_token)
+
+
+                case TokenType.WHILE:
+                    body, condition = self.extract_binary_operands(index)
+                    self.check_operand_types(token, (body,), (TokenType.CURLY_BRACKET,))
+                    self.check_operand_types(token, (condition,), (TokenType.BOOLEAN,))
                     
-                    if get_expression_result_types(condition) != (TokenType.BOOLEAN,):
-                        errors.type_error((TokenType.BOOLEAN,), get_expression_result_types(condition), token.type, token.source_location)
-
-                    # Parse the code inside the curly brackets
-                    content_tree = SyntaxTree()
-                    content_tree.parse_tokens(body.children)
-                    body.children = content_tree.statements
-
                     token.children = [body, condition]
 
 
                 case TokenType.ELSE:
+                    # Check if the else statement is preceded by an if statement
+                    if_index = index - 2
+                    if if_index < 0 or self.tokens[if_index].type != TokenType.IF:
+                        errors.else_without_if(token.source_location)
+
                     body = self.extract_unary_operand(index, Side.LEFT)
                     self.check_operand_types(token, (body,), (TokenType.CURLY_BRACKET,))
                     
-                    # Parse the code inside the curly brackets
-                    content_tree = SyntaxTree()
-                    content_tree.parse_tokens(body.children)
-                    body.children = content_tree.statements
-
                     token.children = [body]
 
 

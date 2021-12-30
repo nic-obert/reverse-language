@@ -89,41 +89,41 @@ token_priority_table: Tuple[int] = \
 
     0,  # IDENTIFIER
 
-    6,  # PLUS
-    6,  # MINUS
-    7,  # MULTIPLY
-    7,  # DIVIDE
-    7,  # MODULO
-    9,  # INCREMENT
-    9,  # DECREMENT
+    7,  # PLUS
+    7,  # MINUS
+    8,  # MULTIPLY
+    8,  # DIVIDE
+    8,  # MODULO
+    10, # INCREMENT
+    10, # DECREMENT
 
-    4,  # EQUAL
-    4,  # NOT_EQUAL
-    5,  # GREATER_THAN
-    5,  # LESS_THAN
-    5,  # GREATER_THAN_OR_EQUAL
-    5,  # LESS_THAN_OR_EQUAL
+    5,  # EQUAL
+    5,  # NOT_EQUAL
+    6,  # GREATER_THAN
+    6,  # LESS_THAN
+    6,  # GREATER_THAN_OR_EQUAL
+    6,  # LESS_THAN_OR_EQUAL
 
-    3,  # AND
+    4,  # AND
     2,  # OR
-    8,  # NOT
+    9,  # NOT
 
-    1,  # ASSIGNMENT
-    1,  # ASSIGNMENT_ADD
-    1,  # ASSIGNMENT_SUB
-    1,  # ASSIGNMENT_MUL
-    1,  # ASSIGNMENT_DIV
-    1,  # ASSIGNMENT_MOD
+    3,  # ASSIGNMENT
+    3,  # ASSIGNMENT_ADD
+    3,  # ASSIGNMENT_SUB
+    3,  # ASSIGNMENT_MUL
+    3,  # ASSIGNMENT_DIV
+    3,  # ASSIGNMENT_MOD
 
     0,  # COMMA
-    9,  # PARENTHESIS
-    9,  # SQUARE_BRACKET
-    0,  # CURLY_BRACKET
+    11, # PARENTHESIS
+    11, # SQUARE_BRACKET
+    11, # CURLY_BRACKET
     0,  # SEMICOLON
 
-    0,  # IF
-    0,  # ELSE
-    0,  # WHILE
+    1,  # IF
+    2,  # ELSE
+    1,  # WHILE
 )
 
 MAX_PRIORITY = token_priority_table[TokenType.PARENTHESIS]
@@ -165,15 +165,15 @@ expression_result_types_table: Tuple[Tuple[TokenType]] = \
     (TokenType.NUMBER,),    # ASSIGNMENT_DIV
     (TokenType.NUMBER,),    # ASSIGNMENT_MOD
 
-    (),   # COMMA
+    (TokenType.COMMA,),              # COMMA
     (TokenType.NUMBER, TokenType.STRING, TokenType.BOOLEAN, TokenType.ARRAY, TokenType.NULL),   # PARENTHESIS
     (),   # SQUARE_BRACKET
-    (),   # CURLY_BRACKET
-    (),   # SEMICOLON
+    (TokenType.CURLY_BRACKET,),      # CURLY_BRACKET
+    (TokenType.SEMICOLON,),          # SEMICOLON
 
-    (),   # IF
-    (),   # ELSE
-    (),   # WHILE
+    (TokenType.IF,),     # IF
+    (TokenType.ELSE,),   # ELSE
+    (TokenType.WHILE,),  # WHILE
 
     (TokenType.NUMBER, TokenType.STRING, TokenType.BOOLEAN, TokenType.ARRAY, TokenType.NULL),    # LITERAL
     (TokenType.NUMBER, TokenType.STRING, TokenType.BOOLEAN, TokenType.ARRAY, TokenType.NULL),    # ARRAY_INDEXING

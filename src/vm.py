@@ -1,10 +1,9 @@
-from typing import Any, Tuple
+from typing import Any, List, Tuple, Union
 
 import src.operations as operations
-import src.errors as errors
 from src.symbols import SymbolTable
 from src.syntax_tree import SyntaxTree
-from src.token import Token, TokenType, get_supported_operand_types
+from src.token import Token, TokenType
 
 
 class Processor:
@@ -14,7 +13,7 @@ class Processor:
         # Push the global scope.
         self.symbol_table.push_scope()
 
-    
+
     def get_value_and_type(self, token: Token) -> Tuple[Any, TokenType]:
         if token.type == TokenType.IDENTIFIER:
             symbol = self.symbol_table.get_symbol(token)
@@ -26,11 +25,15 @@ class Processor:
         return token.value, token.type
     
     
-    def interpret(self, syntax_tree: SyntaxTree) -> None:
+    def interpret_tree(self, syntax_tree: SyntaxTree) -> None:
         """
             Interpret the given syntax tree.
         """
-        statements = syntax_tree.statements
+        self.interpret_statements(syntax_tree.statements)
+    
+
+    def interpret_statements(self, statements: List[Token]) -> None:
+
         for statement in statements:
             result = self.interpret_statement(statement)
             print(result)
@@ -216,7 +219,22 @@ class Processor:
                 self.symbol_table.set_symbol_value(identifier.value, new_value)
                 root.value = symbol.value
                 root.type = type
+            
+            case TokenType.IF:
+                body = root.children[0]
+                condition = root.children[1]
 
-                        
+                condition = self.interpret_statement(condition)
+                if condition.type == TokenType.BOOLEAN and condition.value == True:
+                    # Condition is true, so execute the if statement body
+                    self.interpret_statements(body.children)
+                else:
+                    # Condition is false, so skip the if statement body
+                    # Check if there is an else statement, and if so, execute it
+                    if len(root.children) == 3:
+                        else_statement = root.children[2]
+                        self.interpret_statements(else_statement.children[0].children)
+ 
+
         return root
 

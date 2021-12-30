@@ -1,4 +1,3 @@
-from os import error
 from typing import Any
 
 import src.errors as errors

@@ -33,6 +33,7 @@ This project is explained in detail in a series of articles on Medium. You can f
     - [**String**](#string)
     - [**Boolean**](#boolean)
     - [**Array**](#array)
+    - [**Null**](#null)
   - [**Language built-in functions**](#language-built-in-functions)
     - [**`print`**](#print)
     - [**`println`**](#println)
@@ -248,23 +249,24 @@ null
 
 
 ## **Primitive data types**
-Although the language is dynamically typed, there is still a simple weak typing system.
+Although the language is dynamically typed, there is still a simple weak typing system.  
+The type of a variable is obtained via the built-in function [`getType`](#gettype).
 
 ### **Number**
-The `Number` data type represents a real number, either decimal or integer.
+The `NUMBER` data type represents a real number, either decimal or integer.
 ```
 ;0 = number
 ```
 
 ### **String**
-The `String` data type represents a sequence of characters.  
+The `STRING` data type represents a sequence of characters.  
 Literal strings are enclosed in double quotes: `"this is a string"`.
 ```
 ;"hello world!" = string
 ```
 
 ### **Boolean**
-The `Boolean` data type represents a binary true-false condition.  
+The `BOOLEAN` data type represents a binary true-false condition.  
 The literal boolean `true` evaluates to integer `0`.  
 The literal boolean `false` evaluates to integer `1`.
 ```
@@ -273,13 +275,20 @@ The literal boolean `false` evaluates to integer `1`.
 ```
 
 ### **Array**
-The `Array` data type is a dynamic collection of elements. 
+The `ARRAY` data type is a dynamic collection of elements. 
 Literal arrays are enclosed in square brackets: `[1, 2, 3]`.   
 Array indexes start at 2, so to access the first element of the array, you have to access it at index 2.
 ```
 ;[0, 1, 2, "hello"] = array
 ;array 2 [] \\ Access first array item at index 2
 ```
+
+### **Null**
+The `NULL` data type represents the absence of a value.
+```
+;null = var
+```
+
 
 ## **Language built-in functions**
 

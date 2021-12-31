@@ -223,9 +223,16 @@ class SyntaxTree:
                         if curly_bracket_token.type == TokenType.CURLY_BRACKET:
                             # This is a function declaration: "{body} (args) name"
                             token.type = TokenType.FUNCTION_DECLARATION
+
+                            # Check if the return statement is present, else raise an error
+                            if len(curly_bracket_token.children) == 0 \
+                                or curly_bracket_token.children[0].type != TokenType.RETURN:
+                                errors.missing_return_statement(identifier_token.value, curly_bracket_token.source_location)
+
                             # Update the token's value to include the function body, arguments and name
                             # New format: [body, args, name]
                             token.value = [curly_bracket_token, children, identifier_token]
+                            
                             # Remove the curly bracket and idetifier from the list of tokens
                             self.tokens = self.tokens[:curly_bracket_token_index] + [token] + self.tokens[identifier_token_index + 1:]
                             continue
@@ -382,6 +389,24 @@ class SyntaxTree:
                     self.check_operand_types(token, (body,), (TokenType.CURLY_BRACKET,))
                     
                     token.children = [body]
+                
+
+                case TokenType.RETURN:
+                    return_value = self.extract_unary_operand(index, Side.RIGHT)
+                    self.check_operand_types(token, (return_value,), get_supported_operand_types(TokenType.RETURN))
+                    token.children = [return_value]
+                
+
+                case TokenType.BREAK | \
+                    TokenType.CONTINUE:
+                
+                    # break and continue statements have no operands
+                    pass                   
+                
+
+                case _:
+                    # The token type is not handled, raise an error
+                    errors.unsupported_token(token.type, token.source_location)
 
 
     def stringify_token(self, token: Union[Token, List[Token]], depth: int) -> str:

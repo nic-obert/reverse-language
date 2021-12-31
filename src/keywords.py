@@ -10,6 +10,9 @@ keyword_table: Dict[str, TokenType] = {
     'true': TokenType.BOOLEAN,
     'false': TokenType.BOOLEAN,
     'null': TokenType.NULL,
+    'return': TokenType.RETURN,
+    'break': TokenType.BREAK,
+    'continue': TokenType.CONTINUE,
 }
 
 

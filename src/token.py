@@ -1,4 +1,5 @@
 import enum
+import copy
 from typing import Any, List, Tuple, Union
 
 from src.utils import SourceCodeLocation
@@ -61,6 +62,9 @@ class TokenType(enum.IntEnum):
     IF = enum.auto()
     ELSE = enum.auto()
     WHILE = enum.auto()
+    RETURN = enum.auto()
+    BREAK = enum.auto()
+    CONTINUE = enum.auto()
 
     # Utils
     LITERAL = enum.auto()
@@ -127,6 +131,9 @@ token_priority_table: Tuple[int] = \
     1,  # IF
     2,  # ELSE
     1,  # WHILE
+    1,  # RETURN
+    1,  # BREAK
+    1,  # CONTINUE
 
     0,  # LITERAL
     0,  # ARRAY_INDEXING
@@ -175,21 +182,24 @@ expression_result_types_table: Tuple[Tuple[TokenType]] = \
     (TokenType.NUMBER,),    # ASSIGNMENT_DIV
     (TokenType.NUMBER,),    # ASSIGNMENT_MOD
 
-    (TokenType.COMMA,),              # COMMA
+    (),     # COMMA
     (TokenType.NUMBER, TokenType.STRING, TokenType.BOOLEAN, TokenType.ARRAY, TokenType.NULL),   # PARENTHESIS
-    (),   # SQUARE_BRACKET
-    (TokenType.CURLY_BRACKET,),      # CURLY_BRACKET
-    (TokenType.SEMICOLON,),          # SEMICOLON
+    (),     # SQUARE_BRACKET
+    (),     # CURLY_BRACKET
+    (),     # SEMICOLON
 
-    (TokenType.IF,),     # IF
-    (TokenType.ELSE,),   # ELSE
-    (TokenType.WHILE,),  # WHILE
+    (),     # IF
+    (),     # ELSE
+    (),     # WHILE
+    (),     # RETURN
+    (),     # BREAK
+    (),     # CONTINUE
 
     (TokenType.NUMBER, TokenType.STRING, TokenType.BOOLEAN, TokenType.ARRAY, TokenType.NULL),    # LITERAL
     (TokenType.NUMBER, TokenType.STRING, TokenType.BOOLEAN, TokenType.ARRAY, TokenType.NULL),    # ARRAY_INDEXING
     (TokenType.NUMBER, TokenType.STRING, TokenType.BOOLEAN, TokenType.ARRAY, TokenType.NULL),    # FUNCTION_CALL
-    (),   # FUNCTION_DECLARATION
-    (),   # FUNCTION
+    (),     # FUNCTION_DECLARATION
+    (),     # FUNCTION
 
 )
 
@@ -245,6 +255,9 @@ supported_operand_types_table: Tuple[Union[
     None,  # IF
     None,  # ELSE
     None,  # WHILE
+    (TokenType.NUMBER, TokenType.STRING, TokenType.BOOLEAN, TokenType.ARRAY, TokenType.NULL),  # RETURN
+    None,  # BREAK
+    None,  # CONTINUE
 
     None,  # LITERAL
     None,  # ARRAY_INDEXING
@@ -268,7 +281,7 @@ class Token:
         self.priority = 0 if type_priority == 0 else base_priority + type_priority
         
         self.value = value
-        self.source_location = source_location
+        self.source_location = copy.copy(source_location)
         self.children: List[Token] = []
 
 

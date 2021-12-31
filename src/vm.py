@@ -347,11 +347,33 @@ class Processor:
                     for identifier, argument in zip(parameter_list, arguments_token_list):
                         self.symbol_table.set_symbol(identifier, argument)
                     
-                    # Execute the function body
-                    self.interpret_statements(statements)
+                    # Extract the return statement from the function body, it will be executed at the end of the function
+                    # The return statement is guaranteed to be the first statement in the function body by the SyntaxTree class parser
+                    return_statement = statements[0]
+
+                    # Execute the function body, excluding the return statement
+                    # Don't directly modify the statements list, as it may be used in later function calls
+                    self.interpret_statements(statements[1:])
+
+                    # Execute the return statement and set the function call token to the return value
+                    root = self.interpret_statement(return_statement)
 
                     # Pop the scope from the stack
                     self.symbol_table.pop_scope()
+
+            
+            case TokenType.RETURN:
+                return_value = root.children[0]
+                if return_value.type == TokenType.IDENTIFIER:
+                    # Get the value of the identifier
+                    symbol = self.symbol_table.get_symbol(return_value)
+                    return Token(symbol.type, 0, root.source_location, symbol.value)
+                
+                if TokenType.ARRAY:
+                    return Token(TokenType.ARRAY, 0, root.source_location, self.to_literals(return_value.children))
+                
+                # If the return value is a single literal token, just return it as it is
+                return return_value
 
 
         return root

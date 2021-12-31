@@ -363,6 +363,22 @@ def handle_getTime(arguments: List[Token], caller: Token) -> Token:
     return Token(TokenType.NUMBER, 0, caller.source_location, time.time())
 
 
+def handle_getType(arguments: List[Token], caller: Token) -> Token:
+    match arguments[0].type:
+        case TokenType.STRING:
+            type = "STRING"
+        case TokenType.NUMBER:
+            type = "NUMBER"
+        case TokenType.BOOLEAN:
+            type = "BOOLEAN"
+        case TokenType.ARRAY:
+            type = "ARRAY"
+        case TokenType.NULL:
+            type = "NULL"
+      
+    return Token(TokenType.STRING, 0, caller.source_location, type)
+
+
 """
     Table of builtin functions
     Format: name: BuiltinFunction(name, handler, supported_argument_types)
@@ -380,6 +396,7 @@ builtin_function_handlers_table: Dict[str, BuiltinFunction] = \
     'getLength': BuiltinFunction('getLength', handle_getLength, ((TokenType.STRING, TokenType.ARRAY),)),
     'sleep': BuiltinFunction('sleep', handle_sleep, ((TokenType.NUMBER,),)),
     'getTime': BuiltinFunction('getTime', handle_getTime, ()),
+    'getType': BuiltinFunction('getType', handle_getType, ((TokenType.NUMBER, TokenType.STRING, TokenType.BOOLEAN, TokenType.ARRAY, TokenType.NULL),)),
 }
 
 

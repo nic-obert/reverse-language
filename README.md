@@ -45,6 +45,7 @@ This project is explained in detail in a series of articles on Medium. You can f
     - [**`getLength`**](#getlength)
     - [**`sleep`**](#sleep)
     - [**`getTime`**](#gettime)
+    - [**`getType`**](#gettype)
 
 <br>
 
@@ -417,4 +418,25 @@ Output:
 ```
 1527098981.8
 ```
+
+### **`getType`**
+Get the type of the given data structure, if possible.
+  * Arguments: `STRING`, `ARRAY`, `NUMBER`, `BOOLEAN`, `NULL`.
+  * Returns: `STRING`
+```
+;("Hello World")getType
+;([5, 6, 3, 4])getType
+;(673)getType
+;(true)getType
+;(null)getType
+```
+Output:
+```
+STRING
+ARRAY
+NUMBER
+BOOLEAN
+NULL
+```
+
 

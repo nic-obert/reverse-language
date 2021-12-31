@@ -221,6 +221,23 @@ def not_(value: Any, type: TokenType, operator: Token) -> Any:
     )
 
 
+def array_index(array: List[Any], array_type: TokenType, index: int, index_type: TokenType, operator: Token) -> Any:
+    match (array_type, index_type):
+
+        case (TokenType.ARRAY, TokenType.NUMBER):
+            index -= 2
+            if index < 0 or index >= len(array):
+                errors.array_index_out_of_bounds(len(array), index + 2, operator.source_location)
+            return array[index]
+
+    errors.type_error(
+        get_supported_operand_types(TokenType.ARRAY_INDEX),
+        (array_type, index_type),
+        TokenType.ARRAY_INDEX,
+        operator.source_location
+    )
+
+
 class BuiltinFunction:
 
     def __init__(self,

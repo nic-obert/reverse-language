@@ -96,24 +96,24 @@ token_priority_table: Tuple[int] = \
 
     0,  # IDENTIFIER
 
-    7,  # PLUS
-    7,  # MINUS
-    8,  # MULTIPLY
-    8,  # DIVIDE
-    8,  # MODULO
-    10, # INCREMENT
-    10, # DECREMENT
+    8,  # PLUS
+    8,  # MINUS
+    9,  # MULTIPLY
+    9,  # DIVIDE
+    9,  # MODULO
+    11, # INCREMENT
+    11, # DECREMENT
 
-    5,  # EQUAL
-    5,  # NOT_EQUAL
-    6,  # GREATER_THAN
-    6,  # LESS_THAN
-    6,  # GREATER_THAN_OR_EQUAL
-    6,  # LESS_THAN_OR_EQUAL
+    6,  # EQUAL
+    6,  # NOT_EQUAL
+    7,  # GREATER_THAN
+    7,  # LESS_THAN
+    7,  # GREATER_THAN_OR_EQUAL
+    7,  # LESS_THAN_OR_EQUAL
 
-    4,  # AND
-    2,  # OR
-    9,  # NOT
+    5,  # AND
+    4,  # OR
+    10,  # NOT
 
     3,  # ASSIGNMENT
     3,  # ASSIGNMENT_ADD
@@ -123,9 +123,9 @@ token_priority_table: Tuple[int] = \
     3,  # ASSIGNMENT_MOD
 
     0,  # COMMA
-    11, # PARENTHESIS
-    11, # SQUARE_BRACKET
-    11, # CURLY_BRACKET
+    12, # PARENTHESIS
+    12, # SQUARE_BRACKET
+    12, # CURLY_BRACKET
     0,  # SEMICOLON
 
     1,  # IF
@@ -177,29 +177,29 @@ expression_result_types_table: Tuple[Tuple[TokenType]] = \
 
     (TokenType.NUMBER, TokenType.STRING, TokenType.BOOLEAN, TokenType.ARRAY, TokenType.NULL),    # ASSIGNMENT
     (TokenType.NUMBER, TokenType.STRING, TokenType.ARRAY),    # ASSIGNMENT_ADD
-    (TokenType.NUMBER,),    # ASSIGNMENT_SUB
-    (TokenType.NUMBER,),    # ASSIGNMENT_MUL
-    (TokenType.NUMBER,),    # ASSIGNMENT_DIV
-    (TokenType.NUMBER,),    # ASSIGNMENT_MOD
+    (TokenType.NUMBER,),        # ASSIGNMENT_SUB
+    (TokenType.NUMBER,),        # ASSIGNMENT_MUL
+    (TokenType.NUMBER,),        # ASSIGNMENT_DIV
+    (TokenType.NUMBER,),        # ASSIGNMENT_MOD
 
-    (),     # COMMA
+    (TokenType.COMMA,),         # COMMA
     (TokenType.NUMBER, TokenType.STRING, TokenType.BOOLEAN, TokenType.ARRAY, TokenType.NULL),   # PARENTHESIS
-    (),     # SQUARE_BRACKET
-    (),     # CURLY_BRACKET
-    (),     # SEMICOLON
+    (TokenType.SQUARE_BRACKET,),# SQUARE_BRACKET
+    (TokenType.CURLY_BRACKET,), # CURLY_BRACKET
+    (TokenType.SEMICOLON,),     # SEMICOLON
 
-    (),     # IF
-    (),     # ELSE
-    (),     # WHILE
-    (),     # RETURN
-    (),     # BREAK
-    (),     # CONTINUE
+    (TokenType.IF,),            # IF
+    (TokenType.ELSE,),          # ELSE
+    (TokenType.WHILE,),         # WHILE
+    (TokenType.RETURN,),        # RETURN
+    (TokenType.BREAK,),         # BREAK
+    (TokenType.CONTINUE),       # CONTINUE
 
     (TokenType.NUMBER, TokenType.STRING, TokenType.BOOLEAN, TokenType.ARRAY, TokenType.NULL),    # LITERAL
     (TokenType.NUMBER, TokenType.STRING, TokenType.BOOLEAN, TokenType.ARRAY, TokenType.NULL),    # ARRAY_INDEXING
     (TokenType.NUMBER, TokenType.STRING, TokenType.BOOLEAN, TokenType.ARRAY, TokenType.NULL),    # FUNCTION_CALL
-    (),     # FUNCTION_DECLARATION
-    (),     # FUNCTION
+    (TokenType.FUNCTION_DECLARATION,),  # FUNCTION_DECLARATION
+    (TokenType.FUNCTION),               # FUNCTION
 
 )
 

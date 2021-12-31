@@ -409,15 +409,23 @@ class SyntaxTree:
                     errors.unsupported_token(token.type, token.source_location)
 
 
-    def stringify_token(self, token: Union[Token, List[Token]], depth: int) -> str:
+    def stringify_token(self, token: Token, depth: int) -> str:
         """
         Recursively convert a token into a pretty formetted string.
         """
-        indent = f'{"  " * depth}-> '
-        string = f'{indent}{str(token)}\n'
+        indent = "  |" * depth
+        opening_indent = f'{"  |" * (depth + -1)}  /'
+        string = f'{opening_indent}-+--> {str(token)}\n{indent}\n'
 
         for child in token.children:
-            string += f'{self.stringify_token(child, depth + 1)}'
+            string += self.stringify_token(child, depth + 1)
+
+        if token.type == TokenType.FUNCTION_DECLARATION:
+            # Add the function body
+            string += self.stringify_token(token.value[0], depth + 1)
+        
+        if len(token.children) > 0:
+            string += f'{indent}  \\________________   ({token.type.name})\n{indent}\n'
         
         return string
 
@@ -425,7 +433,8 @@ class SyntaxTree:
     def __str__(self) -> str:
         string = f'<SyntaxTree>\n'
         for token in self.statements:
-            string += self.stringify_token(token, 0)
+            string += self.stringify_token(token, 1)
+        string += '</SyntaxTree>'
         return string
 
     def __repr__(self) -> str:

@@ -8,10 +8,10 @@ from src.state import State
 def print_source_context(source_location: SourceCodeLocation) -> None:
     """
         Print the line of source code that the given source location is in,
-        along with the 2 preceding and 2 following lines of source code, if they exist.
+        along with the 4 preceding and 4 following lines of source code, if they exist.
     """
     # Get to the beginning of the line whose number is (source_location.line_number - 2)
-    lines_to_go_back = 2
+    lines_to_go_back = 4
     index = source_location.line_start - 1
     while index > 0 and lines_to_go_back > 0:
         index -= 1
@@ -19,8 +19,8 @@ def print_source_context(source_location: SourceCodeLocation) -> None:
             lines_to_go_back -= 1
 
     # Print up to 5 surrounding lines of source code, if they exist
-    lines = State.source_code[index + 1:].split('\n', maxsplit=5)[:5]
-    starting_line_number = source_location.line_number - (2 - lines_to_go_back)
+    lines = State.source_code[index + 1:].split('\n', maxsplit=8)[:8]
+    starting_line_number = source_location.line_number - (4 - lines_to_go_back)
     for line in lines:
         print(f'{starting_line_number}: {line}')
         starting_line_number += 1
@@ -108,6 +108,12 @@ def unsupported_token(token: TokenType, source_location: SourceCodeLocation) -> 
 
 def missing_return_statement(function_name: str, source_location: SourceCodeLocation) -> None:
     print(f'Missing return statement for function {function_name} at line {source_location.line_number}')
+    print_source_context(source_location)
+    exit(1)
+
+
+def array_index_out_of_bounds(length: int, index: int, source_location: SourceCodeLocation) -> None:
+    print(f'Array index out of bounds: length {length}, index {index} at line {source_location.line_number}')
     print_source_context(source_location)
     exit(1)
 

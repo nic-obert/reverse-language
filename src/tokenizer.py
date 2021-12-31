@@ -18,12 +18,30 @@ def tokenize_source_code(source_code: str) -> List[Token]:
     base_priority = 0
     parenthesis_depth = 0
     square_bracket_depth = 0
+
     token: Union[Token, None] = None
     tokens: List[Token] = []
+
     source_location = SourceCodeLocation(0, 1)
+    
+    can_be_comment = True
+    is_comment = False
 
     for index, character in enumerate(source_code):
         
+        if can_be_comment:
+            if character == '\\':
+                can_be_comment = False
+                is_comment = True
+                continue
+        
+        # Ignore the character until the end of the line
+        elif is_comment:
+            if character != '\n':
+                continue
+            is_comment = False
+            
+
         if token is not None:
             match token.type:
 
@@ -239,6 +257,10 @@ def tokenize_source_code(source_code: str) -> List[Token]:
                 continue
             case '':
                 continue
+            case '\\':
+                can_be_comment = True
+                continue
+
         
         errors.unexpected_character(character, source_location)
     

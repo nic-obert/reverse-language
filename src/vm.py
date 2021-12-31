@@ -38,7 +38,7 @@ class Processor:
         
         elif token.type == TokenType.PARENTHESIS:
             return self.get_value_and_type(token.children[0])
-        
+                
         return token.value, token.type
     
     
@@ -51,13 +51,16 @@ class Processor:
 
     def interpret_statements(self, statements: List[Token]) -> None:
         for statement in statements:
-            result = self.interpret_statement(copy.copy(statement))
+            result = self.interpret_statement(copy.deepcopy(statement))
             print(result)
 
 
     def interpret_statement(self, root: Token) -> Token:
-        # Don't mind executing literals.
-        if is_literal_type(root.type) or root.type == TokenType.IDENTIFIER:
+        
+        # Don't mind executing literals, except arrays. 
+        # Arrays have to check their elements for identifiers at declaration.
+        if root.type != TokenType.ARRAY and is_literal_type(root.type) \
+            or root.type == TokenType.IDENTIFIER:
             return root
 
         # Interpret the statement recursively.
@@ -104,7 +107,7 @@ class Processor:
 
             case TokenType.INCREMENT:
                 identifier = root.children[0]
-                symbol = self.symbol_table.get_symbol(root.children[0])
+                symbol = self.symbol_table.get_symbol(identifier)
                 
                 new_value = operations.increment(symbol.value, symbol.type, root)
                 
@@ -340,11 +343,14 @@ class Processor:
                     argument_literals = self.to_literals(arguments_token_list)
                     root = builtin_handler.call(argument_literals, root)
                 else:
+                    # Before pushing the new scope to the stack, retrieve eventual symbols from the previous scope
+                    argument_literals = self.to_literals(arguments_token_list)
+
                     # Push the new scope to the stack
                     self.symbol_table.push_scope()
 
                     # Declare the arguments in the new scope
-                    for identifier, argument in zip(parameter_list, arguments_token_list):
+                    for identifier, argument in zip(parameter_list, argument_literals):
                         self.symbol_table.set_symbol(identifier, argument)
                     
                     # Extract the return statement from the function body, it will be executed at the end of the function
@@ -367,14 +373,32 @@ class Processor:
                 if return_value.type == TokenType.IDENTIFIER:
                     # Get the value of the identifier
                     symbol = self.symbol_table.get_symbol(return_value)
-                    return Token(symbol.type, 0, root.source_location, symbol.value)
+                    root = Token(symbol.type, 0, root.source_location, symbol.value)
                 
-                if TokenType.ARRAY:
-                    return Token(TokenType.ARRAY, 0, root.source_location, self.to_literals(return_value.children))
+                elif return_value.type == TokenType.ARRAY:
+                    # Recursively get all the literal values of the array
+                    root = Token(TokenType.ARRAY, 0, root.source_location, self.to_literals(return_value.children))
                 
-                # If the return value is a single literal token, just return it as it is
-                return return_value
+                else:
+                    # If the return value is a single literal token, just return it as it is
+                    root = return_value
+            
 
+            case TokenType.ARRAY_INDEXING:
+                array, array_type = self.get_value_and_type(root.children[0])
+                index, index_type = self.get_value_and_type(root.children[1])
+
+                root = operations.array_index(array, array_type, index, index_type, root)
+
+
+            case TokenType.ARRAY:
+                content: List[Token] = root.value
+                for element in content:
+                    if element.type == TokenType.IDENTIFIER:
+                        element_value, element_type = self.get_value_and_type(element)
+                        element.type = element_type
+                        element.value = element_value
+        
 
         return root
 

@@ -1,5 +1,6 @@
-;("Hello World")getType
-;([5, 6, 3, 4])getType
-;(673)getType
-;(true)getType
-;(null)getType
+;1 = var
+{
+    \\ Print to the console
+    \\I'll talk about this function later
+    ;(var)println
+} var 0 == if

@@ -96,13 +96,17 @@ This project is explained in detail in a series of articles on Medium. You can f
 
 ## **Function definition**
 
+Function must always start with their return statement.  
+If the function doens't return anything, it returns `null`.  
+
 ```
 {
   ;return <return value>
   <code in function body>
 } (<arg1>, <arg2>) <function name>
 ```
-Here are a few exmples of real functions:
+Because of the language's scoping system, functions cannot call themselves recursively, since their name is not valid in the local scope. A simple workaround is to use a variable to reference the function and pass it as an argument.
+
 ```
 \\ Recursive Fibonacci function
 {

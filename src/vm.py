@@ -3,6 +3,7 @@ from typing import Any, List, Tuple
 
 import src.errors as errors
 import src.operations as operations
+from src.state import State
 from src.symbols import SymbolTable
 from src.syntax_tree import SyntaxTree
 from src.token import Token, TokenType, is_literal_type
@@ -52,7 +53,8 @@ class Processor:
     def interpret_statements(self, statements: List[Token]) -> None:
         for statement in statements:
             result = self.interpret_statement(copy.deepcopy(statement))
-            print(result)
+            if State.verbose:
+                print(result)
 
 
     def interpret_statement(self, root: Token) -> Token:

@@ -277,11 +277,17 @@ class Token:
     def __init__(self, type: TokenType, base_priority: int, source_location: SourceCodeLocation, value: Any = None) -> None:
         self.type = type
         
+        # Get the priority from the token type via a lookup table
         type_priority = token_priority_table[type]
+        # Keep the priority set to 0 if the token type shoud not be evaluated
         self.priority = 0 if type_priority == 0 else base_priority + type_priority
         
         self.value = value
+        
+        # Copy the source code location of the token because it should not be modified
         self.source_location = copy.copy(source_location)
+        
+        # List containing the token's operand, if the toke is an operator
         self.children: List[Token] = []
 
 

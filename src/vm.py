@@ -308,12 +308,13 @@ class Processor:
                 current_loop_depth = self.loop_depth
 
                 while self.loop_depth == current_loop_depth:
-                    
+
                     # Evaluate the condition
                     condition_value = self.interpret_statement(copy.deepcopy(condition))
 
                     if condition_value.type == TokenType.BOOLEAN and condition_value.value == True:
                         # Condition is true, so execute the while statement body
+                        self.should_continue_or_break = False
                         self.interpret_statements(body.children)
                     else:
                         # Condition is false, so break out of the loop

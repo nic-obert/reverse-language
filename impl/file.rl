@@ -6,9 +6,9 @@
     {
         ;j++
         {
-            ;break
-        } j 4 == if
-    } true while
+            ;continue
+        } j 4 < if
+    } j 4 < while
     ;i++
     ;("j is: ")print
     ;(j)println

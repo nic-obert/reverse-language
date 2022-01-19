@@ -51,91 +51,112 @@ def tokenize_source_code(source_code: str) -> List[Token]:
                 case TokenType.NUMBER:
                     if character.isdigit():
                         # Extend the number with the new digit
+                        # Shift the whole number to the left by one digit
                         token.value *= 10
+                        # Add the new digit to the right
                         token.value += int(character)
                         continue
                 
                 case TokenType.STRING:
+                    # Continue building the string until we reach the '"" character that signifies the end of the string
                     if character != '"':
                         # Extend the string value
                         token.value += character
                         continue
-                    # character == '"'
+
+                    # Here character == '"'
+                    # Continue because the " character is cannot be part of any other token
                     tokens.append(token)
                     token = None
                     continue
                 
                 case TokenType.PLUS:
-                    if character == '+': # ++
+                    # Operator: ++
+                    if character == '+': 
                         tokens.append(Token(TokenType.INCREMENT, base_priority, source_location))
                         token = None
                         continue
-                    if character == '=': # +=
+                    # Operator: +=
+                    if character == '=':
                         tokens.append(Token(TokenType.ASSIGNMENT_ADD, base_priority, source_location))
                         token = None
                         continue
                 
                 case TokenType.MINUS:
-                    if character == '-': # --
+                    # Operator: --
+                    if character == '-':
                         tokens.append(Token(TokenType.DECREMENT, base_priority, source_location))
                         token = None
                         continue
-                    if character == '=': # -=
+                    # Operator: -=
+                    if character == '=':
                         tokens.append(Token(TokenType.ASSIGNMENT_SUB, base_priority, source_location))
                         token = None
                         continue
 
                 case TokenType.MULTIPLY:
-                    if character == '=': # *=
+                    # Operator: *=
+                    if character == '=':
                         tokens.append(Token(TokenType.ASSIGNMENT_MUL, base_priority, source_location))
                         token = None
                         continue
 
                 case TokenType.DIVIDE:
-                    if character == '=': # /=
+                    # Operator: /=
+                    if character == '=':
                         tokens.append(Token(TokenType.ASSIGNMENT_DIV, base_priority, source_location))
                         token = None
                         continue
 
                 case TokenType.MODULO:
-                    if character == '=': # %=
+                    # Operator: %=
+                    if character == '=':
                         tokens.append(Token(TokenType.ASSIGNMENT_MOD, base_priority, source_location))
                         token = None
                         continue
 
                 case TokenType.ASSIGNMENT:
-                    if character == '=': # ==
+                    # Operator: ==
+                    if character == '=':
                         tokens.append(Token(TokenType.EQUAL, base_priority, source_location))
                         token = None
                         continue
 
                 case TokenType.NOT:
-                    if character == '=': # !=
+                    # Operator: !=
+                    if character == '=':
                         tokens.append(Token(TokenType.NOT_EQUAL, base_priority, source_location))
                         token = None
                         continue
 
                 case TokenType.AND:
-                    if character == '&': # &&
+                    # Operator: &&
+                    if character == '&':
                         tokens.append(Token(TokenType.AND, base_priority, source_location))
                         token = None
                         continue
+                    # The language does not define '&'
                     errors.unexpected_character(character, source_location)
 
                 case TokenType.OR:
-                    if character == '|': # ||
+                    # Operator: ||
+                    if character == '|':
                         tokens.append(Token(TokenType.OR, base_priority, source_location))
                         token = None
                         continue
+                    # The language does not define '|'
                     errors.unexpected_character(character, source_location)
 
                 case TokenType.GREATER_THAN:
-                    if character == '=': # >=
+                    # Operator: >=
+                    if character == '=':
                         tokens.append(Token(TokenType.GREATER_THAN_OR_EQUAL, base_priority, source_location))
                         token = None
                         continue
+
                 case TokenType.LESS_THAN:
-                    if character == '=': # <=
+                    # Operator: <=
+                    if character == '=':
                         tokens.append(Token(TokenType.LESS_THAN_OR_EQUAL, base_priority, source_location))
                         token = None
                         continue
@@ -144,23 +165,27 @@ def tokenize_source_code(source_code: str) -> List[Token]:
                     # Continue until the end of the word
                     if is_identifier(character):
                         token.value += character
-
+                        
+                        # Check if the character is the last one of the source code. 
+                        # If it is, the next character does not exist
                         if index != len(source_code) - 1:
                             continue
-                        # This the end of the source code, ignore the character
+                        # This the end of the source code, so set the next character to '' (nothing)
                         character = ''
-                    
+
                     # Check if the word is a keyword
                     word_type = get_keyword_type(token.value)
+                    # If the word is a keyword
                     if word_type is not None:
                         if word_type == TokenType.BOOLEAN:
                             # Convert the boolean keyword to a literal boolean value
                             value = True if token.value == 'true' else False
                             token = Token(TokenType.BOOLEAN, base_priority, source_location, value)
                         else:
+                            # In any other case, take the keyword as it is
                             token = Token(word_type, base_priority, source_location)
             
-
+            # The token is finished, add it to the list of tokens
             tokens.append(token)
             token = None
 
@@ -275,9 +300,11 @@ def tokenize_source_code(source_code: str) -> List[Token]:
         # If the character wasn't handled, raise an error
         errors.unexpected_character(character, source_location)
     
+    # Eventually, append the last token to the token list, if it wasn't already appended
     if token is not None:
         tokens.append(token)
     
+    # If the source code ended with an unclosed parenthesis, raise an error
     if parenthesis_depth != 0:
         errors.unbalanced_parentheses(parenthesis_depth, source_location)
     

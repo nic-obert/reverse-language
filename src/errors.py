@@ -1,4 +1,4 @@
-from typing import Any, List, Tuple, Union
+from typing import Any, Tuple, Union
 
 from src.utils import SourceCodeLocation
 from src.token import TokenType

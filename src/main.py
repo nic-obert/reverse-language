@@ -34,7 +34,12 @@ def main() -> None:
         print(syntax_tree, end='\n\n')
 
     processor = Processor()
-    processor.interpret_tree(syntax_tree)
+
+    try:
+        processor.interpret_tree(syntax_tree)
+    except KeyboardInterrupt:
+        print('\nInterrupted by user.')
+        exit(1)
 
 
 if __name__ == "__main__":

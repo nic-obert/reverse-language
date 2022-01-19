@@ -15,6 +15,9 @@ class Processor:
         self.symbol_table = SymbolTable()
         # Push the global scope.
         self.symbol_table.push_scope()
+
+        self.loop_depth = 0
+        self.should_continue_or_break = False
     
 
     def to_literals(self, tokens: List[Token]) -> List[Token]:
@@ -52,9 +55,22 @@ class Processor:
 
     def interpret_statements(self, statements: List[Token]) -> None:
         for statement in statements:
+
+            # Pass the control flow to the WHILE hander.
+            if self.should_continue_or_break:
+                break
+
             result = self.interpret_statement(copy.deepcopy(statement))
+
             if State.verbose:
                 print(result)
+
+            # In case of continue statements, go back to condition evaluation in the WHILE handler.
+            # In case of a break statement, go back and end the loop in the WHILE handler.
+            if result.type == TokenType.CONTINUE or result.type == TokenType.BREAK:
+                # Recursively break out of the innermost loop.
+                self.should_continue_or_break = True
+                break
 
 
     def interpret_statement(self, root: Token) -> Token:
@@ -287,12 +303,34 @@ class Processor:
                 body = root.children[0]
                 condition = root.children[1]
 
-                while True:
+                # Increment and save the current loop depth to enable break statements inside nested loops
+                self.loop_depth += 1
+                current_loop_depth = self.loop_depth
+
+                while self.loop_depth == current_loop_depth:
+                    
+                    # Evaluate the condition
                     condition_value = self.interpret_statement(copy.deepcopy(condition))
+
                     if condition_value.type == TokenType.BOOLEAN and condition_value.value == True:
+                        # Condition is true, so execute the while statement body
                         self.interpret_statements(body.children)
                     else:
+                        # Condition is false, so break out of the loop
+                        self.loop_depth -= 1
                         break
+                
+                self.should_continue_or_break = False
+            
+
+            case TokenType.BREAK:
+                # Break out of the current loop
+                self.loop_depth -= 1
+            
+
+            case TokenType.CONTINUE:
+                # Continue to the next iteration of the current loop
+                pass
             
 
             case TokenType.PARENTHESIS:

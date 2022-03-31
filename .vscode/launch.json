@@ -5,11 +5,11 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Module",
+            "name": "Reverse Language",
             "type": "python",
             "request": "launch",
             "module": "src",
-            "args": ["${workspaceFolder}/impl/file.rl"],
+            "args": ["${file}"],
         }
     ]
 }
